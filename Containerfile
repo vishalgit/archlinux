@@ -144,5 +144,6 @@ lazygit \
 zellij && paru -Scc --noconfirm 
 RUN echo 'eval "$(zoxide init zsh)"' >> ${homedir}/.zshrc && \
 echo "alias ls='lsd'" >> ${homedir}/.zshrc && \
-echo "source /usr/share/fzf/key-bindings.zsh" >> ${homedir}/.zshrc
+echo "source /usr/share/fzf/key-bindings.zsh" >> ${homedir}/.zshrc && \
+echo "alias gitdc=\"gpg --decrypt ${homedir}/.secrets/gh.gpg\"" >> ${homedir}/.zshrc
 
