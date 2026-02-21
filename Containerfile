@@ -119,8 +119,7 @@ paru -Scc --noconfirm && \
 git clone --depth 1 https://github.com/doomemacs/doomemacs ${XDG_CONFIG_HOME}/emacs
 ENV PATH="${XDG_CONFIG_HOME}/emacs/bin:${PATH}"
 RUN doom install --env
-RUN echo "alias cmacs='emacs -nw'" >> ${homedir}/.zshrc && \
-echo "export PATH=${PATH}" >> ${homedir}/.zshrc
+RUN echo "alias cmacs='emacs -nw'" >> ${homedir}/.zshrc
 
 # Set up nerdfont
 RUN mkdir -p ${homedir}/.fonts && \
@@ -141,9 +140,27 @@ tldr \
 eza \
 lsd \
 lazygit \
+curl \
 zellij && paru -Scc --noconfirm 
 RUN echo 'eval "$(zoxide init zsh)"' >> ${homedir}/.zshrc && \
 echo "alias ls='lsd'" >> ${homedir}/.zshrc && \
 echo "source /usr/share/fzf/key-bindings.zsh" >> ${homedir}/.zshrc && \
 echo "alias gitdc=\"gpg --decrypt ${homedir}/.secrets/gh.gpg\"" >> ${homedir}/.zshrc
+
+# Claude Code
+RUN curl -fsSL https://claude.ai/install.sh | zsh
+# Mise
+RUN curl https://mise.run/zsh | sh
+ENV PATH="${homedir}/.local/share/mise/shims:${PATH}"
+# Ruby on rails
+RUN mise use -g core:ruby && \
+echo "gem: --no-document" >> ${homedir}/.gemrc && \
+mkdir -p ${homedir}/.bundle && \
+echo "bundle config set --global no-doc true" >> ${homedir}/.bundle/config && \
+mise use -g gem:rails gem:neovim
+
+# Nodejs lts
+RUN mise use -g core:node@lts && \
+mise use -g npm:neovim
+
 
