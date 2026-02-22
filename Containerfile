@@ -114,12 +114,14 @@ EOF
 RUN chmod u+x ${kata_location}/kata
 
 # Setup terminal emacs
-RUN paru -Syu emacs pandoc shellcheck wget fontconfig --noconfirm && \
+RUN git clone https://github.com/vishalgit/doom ${XDG_CONFIG_HOME}/doom && \
+paru -Syu ttf-symbola github-cli emacs pandoc shellcheck wget fontconfig --noconfirm && \
 paru -Scc --noconfirm && \
-git clone --depth 1 https://github.com/doomemacs/doomemacs ${XDG_CONFIG_HOME}/emacs
+git clone --depth 1 https://github.com/doomemacs/doomemacs ${XDG_CONFIG_HOME}/emacs && \
+${XDG_CONFIG_HOME}/emacs/bin/doom install --env --force && \
+${XDG_CONFIG_HOME}/emacs/bin/doom sync && \
+echo "alias cmacs='emacs -nw'" >> ${homedir}/.zshrc
 ENV PATH="${XDG_CONFIG_HOME}/emacs/bin:${PATH}"
-RUN doom install --env
-RUN echo "alias cmacs='emacs -nw'" >> ${homedir}/.zshrc
 
 # Set up nerdfont
 RUN mkdir -p ${homedir}/.fonts && \
@@ -166,5 +168,4 @@ mise use -g npm:neovim && \
 mise use -g npm:npm && \
 mise use -g npm:typescript && \
 mise use -g npm:tree-sitter-cli 
-
 
