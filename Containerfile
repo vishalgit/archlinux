@@ -153,7 +153,8 @@ RUN curl -fsSL https://claude.ai/install.sh | zsh
 RUN curl https://mise.run/zsh | sh
 ENV PATH="${homedir}/.local/share/mise/shims:${PATH}"
 # Ruby on rails
-RUN mise use -g core:ruby && \
+RUN paru -Syu --noconfirm sqlite && paru -Scc --noconfirm && \
+mise use -g core:ruby && \
 echo "gem: --no-document" >> ${homedir}/.gemrc && \
 mkdir -p ${homedir}/.bundle && \
 echo "bundle config set --global no-doc true" >> ${homedir}/.bundle/config && \
