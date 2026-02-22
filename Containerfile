@@ -161,6 +161,9 @@ mise use -g gem:rails gem:neovim
 
 # Nodejs lts
 RUN mise use -g core:node@lts && \
-mise use -g npm:neovim
+mise use -g npm:neovim && \
+mise use -g npm:npm && \
+mise use -g npm:typescript && \
+mise use -g npm:tree-sitter-cli 
 
 
