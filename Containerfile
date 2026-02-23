@@ -92,7 +92,7 @@ ENV XDG_CONFIG_HOME=${homedir}/.config
 ENV COLORTERM=truecolor
 ENV PATH="${homedir}/.local/share/bob/nvim-bin:${PATH}"
 
-RUN paru -Syu --noconfirm fd ripgrep unzip texinfo xclip bob && \
+RUN paru -Syu --noconfirm curl fd ripgrep unzip texinfo xclip bob && \
 paru -Scc --noconfirm && \
 git clone https://github.com/vishalgit/kickstart.nvim ${XDG_CONFIG_HOME}/kickstart && \
 cd ${XDG_CONFIG_HOME}/kickstart && \
@@ -100,6 +100,12 @@ git remote add upstream https://github.com/nvim-lua/kickstart.nvim && \
 git remote set-url --push upstream DISABLE && \
 echo "alias kvim='NVIM_APPNAME=kickstart nvim'" >> ${homedir}/.zshrc && \
 bob use stable 
+RUN git clone https://github.com/vishalgit/lazyvim ${XDG_CONFIG_HOME}/lazyvim && \
+cd ${XDG_CONFIG_HOME}/lazyvim && \
+git remote add upstream https://github.com/LazyVim/starter && \
+git remote set-url --push upstream DISABLE && \
+echo "alias lvim='NVIM_APPNAME=lazyvim nvim'" >> ${homedir}/.zshrc
+
 # Enable kata
 ARG kata_location=${homedir}/.local/bin
 ENV PATH="${kata_location}:${PATH}"
@@ -113,27 +119,50 @@ cd /home/vishal/.vim-kata
 EOF
 RUN chmod u+x ${kata_location}/kata
 
-# Setup terminal emacs
-RUN git clone https://github.com/vishalgit/doom ${XDG_CONFIG_HOME}/doom && \
-paru -Syu ttf-symbola ttf-nerd-fonts-symbols-mono github-cli emacs pandoc shellcheck wget fontconfig --noconfirm && \
-paru -Scc --noconfirm && \
-git clone --depth 1 https://github.com/doomemacs/doomemacs ${XDG_CONFIG_HOME}/emacs && \
-${XDG_CONFIG_HOME}/emacs/bin/doom install --env --force && \
-${XDG_CONFIG_HOME}/emacs/bin/doom sync && \
-echo "alias cmacs='emacs -nw'" >> ${homedir}/.zshrc
-ENV PATH="${XDG_CONFIG_HOME}/emacs/bin:${PATH}"
+# # Setup terminal emacs
+# RUN git clone https://github.com/vishalgit/doom ${XDG_CONFIG_HOME}/doom && \
+# paru -Syu ttf-symbola ttf-nerd-fonts-symbols-mono github-cli emacs pandoc shellcheck wget fontconfig --noconfirm && \
+# paru -Scc --noconfirm && \
+# git clone --depth 1 https://github.com/doomemacs/doomemacs ${XDG_CONFIG_HOME}/emacs && \
+# ${XDG_CONFIG_HOME}/emacs/bin/doom install --env --force && \
+# ${XDG_CONFIG_HOME}/emacs/bin/doom sync && \
+# echo "alias cmacs='emacs -nw'" >> ${homedir}/.zshrc
+# ENV PATH="${XDG_CONFIG_HOME}/emacs/bin:${PATH}"
 
-# Set up nerdfont
-RUN mkdir -p ${homedir}/.fonts && \
-wget -q --show-progress https://github.com/ryanoasis/nerd-fonts/releases/latest/download/JetBrainsMono.tar.xz -O ${homedir}/JetBrainsMono.tar.xz && \
-tar -xvf ${homedir}/JetBrainsMono.tar.xz -C ${homedir}/.fonts && \
-fc-cache -fv ${homedir}/.fonts \
-&& rm -rf ${homedir}/JetBrainsMono.tar.xz
+# # Set up nerdfont
+# RUN mkdir -p ${homedir}/.fonts && \
+# wget -q --show-progress https://github.com/ryanoasis/nerd-fonts/releases/latest/download/JetBrainsMono.tar.xz -O ${homedir}/JetBrainsMono.tar.xz && \
+# tar -xvf ${homedir}/JetBrainsMono.tar.xz -C ${homedir}/.fonts && \
+# fc-cache -fv ${homedir}/.fonts \
+# && rm -rf ${homedir}/JetBrainsMono.tar.xz
+
+# Claude Code
+RUN curl -fsSL https://claude.ai/install.sh | bash
+# Mise
+RUN curl https://mise.run/zsh | sh
+ENV PATH="${homedir}/.local/share/mise/shims:${PATH}"
+# Ruby on rails
+RUN mise settings ruby.compile=false && \ 
+mise use -g core:ruby && \
+echo "gem: --no-document" >> ${homedir}/.gemrc && \
+mkdir -p ${homedir}/.bundle && \
+echo "bundle config set --global no-doc true" >> ${homedir}/.bundle/config && \
+mise use -g gem:rails gem:neovim
+
+# Nodejs lts
+ENV NODE_EXTRA_CA_CERTS=${homedir}/.certs/cert.crt
+RUN mkdir -p ${homedir}/.certs && \
+cp /etc/ca-certificates/trust-source/anchors/cert.crt ${homedir}/.certs/cert.crt && \ 
+mise use -g core:node@lts && \
+mise use -g npm:neovim && \
+mise use -g npm:npm && \
+mise use -g npm:typescript && \
+mise use -g npm:tree-sitter-cli 
+
 
 RUN paru -Syu --noconfirm yazi \
 7zip \
 jq \
-poppler \
 fzf \
 zoxide \
 btop \
@@ -142,29 +171,10 @@ tldr \
 eza \
 lsd \
 lazygit \
-curl \
-zellij && paru -Scc --noconfirm 
+zellij \
+&& paru -Scc --noconfirm 
+
 RUN echo 'eval "$(zoxide init zsh)"' >> ${homedir}/.zshrc && \
 echo "alias ls='lsd'" >> ${homedir}/.zshrc && \
 echo "source /usr/share/fzf/key-bindings.zsh" >> ${homedir}/.zshrc && \
 echo "alias gitdc=\"gpg --decrypt ${homedir}/.secrets/gh.gpg\"" >> ${homedir}/.zshrc
-
-# Claude Code
-RUN curl -fsSL https://claude.ai/install.sh | zsh
-# Mise
-RUN curl https://mise.run/zsh | sh
-ENV PATH="${homedir}/.local/share/mise/shims:${PATH}"
-# Ruby on rails
-RUN mise use -g core:ruby && \
-echo "gem: --no-document" >> ${homedir}/.gemrc && \
-mkdir -p ${homedir}/.bundle && \
-echo "bundle config set --global no-doc true" >> ${homedir}/.bundle/config && \
-mise use -g gem:rails gem:neovim
-
-# Nodejs lts
-RUN mise use -g core:node@lts && \
-mise use -g npm:neovim && \
-mise use -g npm:npm && \
-mise use -g npm:typescript && \
-mise use -g npm:tree-sitter-cli 
-
