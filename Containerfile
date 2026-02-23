@@ -115,7 +115,7 @@ RUN chmod u+x ${kata_location}/kata
 
 # Setup terminal emacs
 RUN git clone https://github.com/vishalgit/doom ${XDG_CONFIG_HOME}/doom && \
-paru -Syu ttf-symbola github-cli emacs pandoc shellcheck wget fontconfig --noconfirm && \
+paru -Syu ttf-symbola ttf-nerd-fonts-symbols-mono github-cli emacs pandoc shellcheck wget fontconfig --noconfirm && \
 paru -Scc --noconfirm && \
 git clone --depth 1 https://github.com/doomemacs/doomemacs ${XDG_CONFIG_HOME}/emacs && \
 ${XDG_CONFIG_HOME}/emacs/bin/doom install --env --force && \
@@ -155,8 +155,7 @@ RUN curl -fsSL https://claude.ai/install.sh | zsh
 RUN curl https://mise.run/zsh | sh
 ENV PATH="${homedir}/.local/share/mise/shims:${PATH}"
 # Ruby on rails
-RUN paru -Syu --noconfirm ttf-nerd-fonts-symbols-mono sqlite && paru -Scc --noconfirm && \
-mise use -g core:ruby && \
+RUN mise use -g core:ruby && \
 echo "gem: --no-document" >> ${homedir}/.gemrc && \
 mkdir -p ${homedir}/.bundle && \
 echo "bundle config set --global no-doc true" >> ${homedir}/.bundle/config && \
