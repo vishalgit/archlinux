@@ -92,7 +92,7 @@ ENV XDG_CONFIG_HOME=${homedir}/.config
 ENV COLORTERM=truecolor
 ENV PATH="${homedir}/.local/share/bob/nvim-bin:${PATH}"
 
-RUN paru -Syu --noconfirm github-cli curl fd ripgrep unzip texinfo xclip bob && \
+RUN paru -Syu --noconfirm github-cli curl wget fd ripgrep unzip texinfo xclip bob && \
 paru -Scc --noconfirm && \
 git clone https://github.com/vishalgit/kickstart.nvim ${XDG_CONFIG_HOME}/kickstart && \
 cd ${XDG_CONFIG_HOME}/kickstart && \
@@ -120,22 +120,22 @@ cd /home/vishal/.vim-kata
 EOF
 RUN chmod u+x ${kata_location}/kata
 
-# # Setup terminal emacs
-# RUN git clone https://github.com/vishalgit/doom ${XDG_CONFIG_HOME}/doom && \
-# paru -Syu ttf-symbola ttf-nerd-fonts-symbols-mono github-cli emacs pandoc shellcheck wget fontconfig --noconfirm && \
-# paru -Scc --noconfirm && \
-# git clone --depth 1 https://github.com/doomemacs/doomemacs ${XDG_CONFIG_HOME}/emacs && \
-# ${XDG_CONFIG_HOME}/emacs/bin/doom install --env --force && \
-# ${XDG_CONFIG_HOME}/emacs/bin/doom sync && \
-# echo "alias cmacs='emacs -nw'" >> ${homedir}/.zshrc
-# ENV PATH="${XDG_CONFIG_HOME}/emacs/bin:${PATH}"
+# Setup terminal emacs
+RUN git clone https://github.com/vishalgit/doom ${XDG_CONFIG_HOME}/doom && \
+paru -Syu ttf-symbola ttf-nerd-fonts-symbols-mono emacs pandoc shellcheck fontconfig --noconfirm && \
+paru -Scc --noconfirm && \
+git clone --depth 1 https://github.com/doomemacs/doomemacs ${XDG_CONFIG_HOME}/emacs && \
+${XDG_CONFIG_HOME}/emacs/bin/doom install --env --force && \
+${XDG_CONFIG_HOME}/emacs/bin/doom sync && \
+echo "alias cmacs='emacs -nw'" >> ${homedir}/.zshrc
+ENV PATH="${XDG_CONFIG_HOME}/emacs/bin:${PATH}"
 
-# # Set up nerdfont
-# RUN mkdir -p ${homedir}/.fonts && \
-# wget -q --show-progress https://github.com/ryanoasis/nerd-fonts/releases/latest/download/JetBrainsMono.tar.xz -O ${homedir}/JetBrainsMono.tar.xz && \
-# tar -xvf ${homedir}/JetBrainsMono.tar.xz -C ${homedir}/.fonts && \
-# fc-cache -fv ${homedir}/.fonts \
-# && rm -rf ${homedir}/JetBrainsMono.tar.xz
+# Set up nerdfont
+RUN mkdir -p ${homedir}/.fonts && \
+wget -q --show-progress https://github.com/ryanoasis/nerd-fonts/releases/latest/download/JetBrainsMono.tar.xz -O ${homedir}/JetBrainsMono.tar.xz && \
+tar -xvf ${homedir}/JetBrainsMono.tar.xz -C ${homedir}/.fonts && \
+fc-cache -fv ${homedir}/.fonts \
+&& rm -rf ${homedir}/JetBrainsMono.tar.xz
 
 # Claude Code
 RUN curl -fsSL https://claude.ai/install.sh | bash
