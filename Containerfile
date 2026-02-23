@@ -122,7 +122,7 @@ RUN chmod u+x ${kata_location}/kata
 
 # Setup terminal emacs
 RUN git clone https://github.com/vishalgit/doom ${XDG_CONFIG_HOME}/doom && \
-paru -Syu ttf-symbola ttf-nerd-fonts-symbols-mono emacs fontconfig --noconfirm && \
+paru -Syu ttf-symbola ttf-nerd-fonts-symbols-mono emacs pandoc-bin shellcheck-bin fontconfig --noconfirm && \
 paru -Scc --noconfirm && \
 git clone --depth 1 https://github.com/doomemacs/doomemacs ${XDG_CONFIG_HOME}/emacs && \
 ${XDG_CONFIG_HOME}/emacs/bin/doom install --env --force && \
@@ -162,17 +162,12 @@ mise use -g npm:tree-sitter-cli
 
 
 RUN paru -Syu --noconfirm yazi \
-7zip \
 jq \
 fzf \
 zoxide \
-btop \
 bat \
 tldr \
-eza \
 lsd \
-lazygit \
-zellij \
 && paru -Scc --noconfirm 
 
 RUN echo 'eval "$(zoxide init zsh)"' >> ${homedir}/.zshrc && \
