@@ -122,7 +122,7 @@ RUN chmod u+x ${kata_location}/kata
 
 # Setup terminal emacs
 RUN git clone https://github.com/vishalgit/doom ${XDG_CONFIG_HOME}/doom && \
-paru -Syu ttf-symbola ttf-nerd-fonts-symbols-mono emacs pandoc shellcheck fontconfig --noconfirm && \
+paru -Syu ttf-symbola ttf-nerd-fonts-symbols-mono emacs fontconfig --noconfirm && \
 paru -Scc --noconfirm && \
 git clone --depth 1 https://github.com/doomemacs/doomemacs ${XDG_CONFIG_HOME}/emacs && \
 ${XDG_CONFIG_HOME}/emacs/bin/doom install --env --force && \
