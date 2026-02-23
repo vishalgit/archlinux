@@ -92,7 +92,7 @@ ENV XDG_CONFIG_HOME=${homedir}/.config
 ENV COLORTERM=truecolor
 ENV PATH="${homedir}/.local/share/bob/nvim-bin:${PATH}"
 
-RUN paru -Syu --noconfirm curl fd ripgrep unzip texinfo xclip bob && \
+RUN paru -Syu --noconfirm github-cli curl fd ripgrep unzip texinfo xclip bob && \
 paru -Scc --noconfirm && \
 git clone https://github.com/vishalgit/kickstart.nvim ${XDG_CONFIG_HOME}/kickstart && \
 cd ${XDG_CONFIG_HOME}/kickstart && \
@@ -100,6 +100,7 @@ git remote add upstream https://github.com/nvim-lua/kickstart.nvim && \
 git remote set-url --push upstream DISABLE && \
 echo "alias kvim='NVIM_APPNAME=kickstart nvim'" >> ${homedir}/.zshrc && \
 bob use stable 
+
 RUN git clone https://github.com/vishalgit/lazyvim ${XDG_CONFIG_HOME}/lazyvim && \
 cd ${XDG_CONFIG_HOME}/lazyvim && \
 git remote add upstream https://github.com/LazyVim/starter && \
