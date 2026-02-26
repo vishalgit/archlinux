@@ -168,6 +168,7 @@ zoxide \
 bat \
 tldr \
 lsd \
+zellij \
 && paru -Scc --noconfirm 
 
 RUN echo 'eval "$(zoxide init zsh)"' >> ${homedir}/.zshrc && \
