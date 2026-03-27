@@ -47,15 +47,19 @@ USER ${user}
 WORKDIR ${homedir}
 
 # Setup git config & git authentication
+COPY --chown=${user}:${group} gh.gpg ${homedir}/.secrets/gh.gpg
+COPY --chown=${user}:${group} .gitattributes ${homedir}/.secrets/.gitattributes
+COPY --chown=${user}:${group} --chmod=755 gh-cred-helper.sh ${homedir}/.secrets/gh-cred-helper.sh
 RUN git config --global init.defaultBranch main && \
+git config --global core.editor nvim && \
 git config --global user.name ${name} && \
 git config --global user.email ${email} && \
 git config --global core.editor "nvim" && \
 git config --global pull.rebase true && \
 git config --global credential.helper ${homedir}/.secrets/gh-cred-helper.sh && \
-mkdir -p ${homedir}/.secrets 
-COPY --chown=${user}:${group} gh.gpg ${homedir}/.secrets/gh.gpg
-COPY --chown=${user}:${group} --chmod=755 gh-cred-helper.sh ${homedir}/.secrets/gh-cred-helper.sh
+mkdir -p ${homedir}/.secrets && \
+git config --global core.attributesfile ${homedir}/.secrets/.gitattributes
+
 
 # Setup rust
 RUN rustup set profile minimal && \ 
@@ -81,7 +85,7 @@ RUN paru -Syu rclone --noconfirm && paru -Scc --noconfirm && \
 mkdir -p ${homedir}/.config/rclone ${homedir}/org && \
 echo "alias orgbisync='rclone bisync "${homedir}"/org mega:org --resync --size-only'" >> ${homedir}/.zshrc && \
 echo "alias orgsync='rclone sync "${homedir}"/org mega:org'" >> ${homedir}/.zshrc && \
-echo "alias gitauth='gpg --decrypt "${homedir}"/.secrets/gh.gpg'" >> ${homedir}/.zshrc
+echo "alias gitdc='gpg --decrypt "${homedir}"/.secrets/gh.gpg'" >> ${homedir}/.zshrc
 COPY --chown=${user}:${group} rclone.conf ${homedir}/.config/rclone/rclone.conf
 
 
@@ -167,11 +171,14 @@ fzf \
 zoxide \
 bat \
 tldr \
-lsd \
+eza \
 zellij \
 && paru -Scc --noconfirm 
 
 RUN echo 'eval "$(zoxide init zsh)"' >> ${homedir}/.zshrc && \
-echo "alias ls='lsd'" >> ${homedir}/.zshrc && \
+echo "alias ls='eza'" >> ${homedir}/.zshrc && \
+echo "alias ll='eza -l --git --icons'" >> ${homedir}/.zshrc && \
+echo "alias la='eza -la --git --icons'" >> ${homedir}/.zshrc && \
+echo "alias lt='eza  --tree --level=3 --icons'" >> ${homedir}/.zshrc && \
 echo "source /usr/share/fzf/key-bindings.zsh" >> ${homedir}/.zshrc && \
 echo "alias gitdc=\"gpg --decrypt ${homedir}/.secrets/gh.gpg\"" >> ${homedir}/.zshrc
