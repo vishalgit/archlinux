@@ -1,9 +1,10 @@
+# syntax=docker/dockerfile:1
 FROM archlinux:latest
 
-RUN sed -i 's|https://|http://|g' /etc/pacman.d/mirrorlist && \
+RUN sed -i 's|https://|http://|g' /etc/pacman.d/mirrorlist
+RUN --mount=type=cache,target=/var/cache/pacman/pkg,sharing=locked \
 pacman -Sy --noconfirm aria2 rate-mirrors && \
-sed -i '/^\[options\]/a XferCommand = /usr/bin/aria2c --allow-overwrite=true --continue=true --file-allocation=none --log-level=error --max-tries=3 --max-connection-per-server=2 --max-file-not-found=5 --min-split-size=5M --no-conf --remote-time=true --summary-interval=60 --timeout=5 --dir=/ --out %o %u' /etc/pacman.conf && \
-pacman -Scc --noconfirm
+sed -i '/^\[options\]/a XferCommand = /usr/bin/aria2c --allow-overwrite=true --continue=true --file-allocation=none --log-level=error --max-tries=3 --max-connection-per-server=2 --max-file-not-found=5 --min-split-size=5M --no-conf --remote-time=true --summary-interval=60 --timeout=5 --dir=/ --out %o %u' /etc/pacman.conf
 
 COPY cert.crt /etc/ca-certificates/trust-source/anchors/
 RUN trust extract-compat && \
@@ -11,13 +12,13 @@ sed -i 's|http://|https://|g' /etc/pacman.d/mirrorlist
 
 RUN rate-mirrors --allow-root arch --max-delay 21600 | tee /etc/pacman.d/mirrorlist
 
-RUN pacman -Syu --noconfirm \
-rustup \
+RUN --mount=type=cache,target=/var/cache/pacman/pkg,sharing=locked \
+pacman -Syu --noconfirm && \
+pacman -S --noconfirm rustup \
 base-devel \
 git \
 zsh \
-sudo \
-&& pacman -Scc --noconfirm  
+sudo
 
 ARG user=vishal
 ARG group=vishal
@@ -76,12 +77,14 @@ rm -rf /tmp/paru
 RUN sh -c "$(curl -fsSL https://raw.githubusercontent.com/ohmyzsh/ohmyzsh/master/tools/install.sh)" "" --unattended
 
 # Setup tmux
-RUN paru -Syu tmux --noconfirm && paru -Scc --noconfirm && \
+RUN --mount=type=cache,target=/var/cache/pacman/pkg,sharing=locked \
+paru -Syu tmux --noconfirm && \
 git clone https://github.com/tmux-plugins/tpm ${homedir}/.tmux/plugins/tpm
 COPY --chown=${user}:${group} tmux.conf ${homedir}/.tmux.conf
 
 # Setup rclone
-RUN paru -Syu rclone --noconfirm && paru -Scc --noconfirm && \
+RUN --mount=type=cache,target=/var/cache/pacman/pkg,sharing=locked \
+paru -Syu rclone --noconfirm && \
 mkdir -p ${homedir}/.config/rclone ${homedir}/org && \
 echo "alias orgbisync='rclone bisync "${homedir}"/org mega:org --resync --size-only'" >> ${homedir}/.zshrc && \
 echo "alias orgsync='rclone sync "${homedir}"/org mega:org'" >> ${homedir}/.zshrc && \
@@ -96,8 +99,8 @@ ENV XDG_CONFIG_HOME=${homedir}/.config
 ENV COLORTERM=truecolor
 ENV PATH="${homedir}/.local/share/bob/nvim-bin:${PATH}"
 
-RUN paru -Syu --noconfirm github-cli curl wget fd ripgrep unzip texinfo xclip bob && \
-paru -Scc --noconfirm && \
+RUN --mount=type=cache,target=/var/cache/pacman/pkg,sharing=locked \
+paru -Syu --noconfirm github-cli curl wget fd ripgrep unzip texinfo xclip bob && \
 git clone https://github.com/vishalgit/kickstart.nvim ${XDG_CONFIG_HOME}/kickstart && \
 cd ${XDG_CONFIG_HOME}/kickstart && \
 git remote add upstream https://github.com/nvim-lua/kickstart.nvim && \
@@ -124,23 +127,6 @@ cd /home/vishal/.vim-kata
 EOF
 RUN chmod u+x ${kata_location}/kata
 
-# Setup terminal emacs
-RUN git clone https://github.com/vishalgit/doom ${XDG_CONFIG_HOME}/doom && \
-paru -Syu ttf-symbola ttf-nerd-fonts-symbols-mono emacs pandoc-bin shellcheck-bin fontconfig --noconfirm && \
-paru -Scc --noconfirm && \
-git clone --depth 1 https://github.com/doomemacs/doomemacs ${XDG_CONFIG_HOME}/emacs && \
-${XDG_CONFIG_HOME}/emacs/bin/doom install --env --force && \
-${XDG_CONFIG_HOME}/emacs/bin/doom sync && \
-echo "alias cmacs='emacs -nw'" >> ${homedir}/.zshrc
-ENV PATH="${XDG_CONFIG_HOME}/emacs/bin:${PATH}"
-
-# Set up nerdfont
-RUN mkdir -p ${homedir}/.fonts && \
-wget -q --show-progress https://github.com/ryanoasis/nerd-fonts/releases/latest/download/JetBrainsMono.tar.xz -O ${homedir}/JetBrainsMono.tar.xz && \
-tar -xvf ${homedir}/JetBrainsMono.tar.xz -C ${homedir}/.fonts && \
-fc-cache -fv ${homedir}/.fonts \
-&& rm -rf ${homedir}/JetBrainsMono.tar.xz
-
 # Claude Code
 RUN curl -fsSL https://claude.ai/install.sh | bash
 # Mise
@@ -162,18 +148,21 @@ mise use -g core:node@lts && \
 mise use -g npm:neovim && \
 mise use -g npm:npm && \
 mise use -g npm:typescript && \
+mise use -g npm:markdown-cli2 && \
 mise use -g npm:tree-sitter-cli 
+RUN cd ${homedir}/.local/share/mise/shims && \
+ln -s markdownlint-cli2 markdownlint
 
 
-RUN paru -Syu --noconfirm yazi \
+RUN --mount=type=cache,target=/var/cache/pacman/pkg,sharing=locked \
+paru -Syu --noconfirm yazi \
 jq \
 fzf \
 zoxide \
 bat \
 tldr \
 eza \
-zellij \
-&& paru -Scc --noconfirm 
+zellij 
 
 RUN echo 'eval "$(zoxide init zsh)"' >> ${homedir}/.zshrc && \
 echo "alias ls='eza'" >> ${homedir}/.zshrc && \
