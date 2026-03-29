@@ -127,6 +127,23 @@ cd /home/vishal/.vim-kata
 EOF
 RUN chmod u+x ${kata_location}/kata
 
+# Setup terminal emacs
+RUN git clone https://github.com/vishalgit/doom ${XDG_CONFIG_HOME}/doom
+RUN --mount=type=cache,target=/var/cache/pacman/pkg,sharing=locked \
+paru -Syu ttf-symbola ttf-nerd-fonts-symbols-mono emacs pandoc-bin shellcheck-bin fontconfig --noconfirm && \
+git clone --depth 1 https://github.com/doomemacs/doomemacs ${XDG_CONFIG_HOME}/emacs && \
+${XDG_CONFIG_HOME}/emacs/bin/doom install --env --force && \
+${XDG_CONFIG_HOME}/emacs/bin/doom sync && \
+echo "alias cmacs='emacs -nw'" >> ${homedir}/.zshrc
+ENV PATH="${XDG_CONFIG_HOME}/emacs/bin:${PATH}"
+
+# Set up nerdfont
+RUN mkdir -p ${homedir}/.fonts && \
+wget -q --show-progress https://github.com/ryanoasis/nerd-fonts/releases/latest/download/JetBrainsMono.tar.xz -O ${homedir}/JetBrainsMono.tar.xz && \
+tar -xvf ${homedir}/JetBrainsMono.tar.xz -C ${homedir}/.fonts && \
+fc-cache -fv ${homedir}/.fonts \
+&& rm -rf ${homedir}/JetBrainsMono.tar.xz
+
 # Claude Code
 RUN curl -fsSL https://claude.ai/install.sh | bash
 # Mise
