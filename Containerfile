@@ -119,7 +119,7 @@ ARG kata_location=${homedir}/.local/bin
 ENV PATH="${kata_location}:${PATH}"
 RUN mkdir ${kata_location} && \
 git clone https://github.com/vishalgit/vim-kata && mv vim-kata ${homedir}/.vim-kata && \
-cat > ${kata_location}/kata << 'EOF'
+cat > ${kata_location}/kata <<'EOF'
 #!/bin/bash
 export NVIM_APPNAME=kickstart
 cd /home/vishal/.vim-kata
