@@ -100,7 +100,7 @@ ENV COLORTERM=truecolor
 ENV PATH="${homedir}/.local/share/bob/nvim-bin:${PATH}"
 
 RUN --mount=type=cache,target=/var/cache/pacman/pkg,sharing=locked \
-paru -Syu --noconfirm github-cli curl wget fd ripgrep unzip texinfo xclip bob && \
+paru -Syu --noconfirm github-cli curl wget fd ripgrep unzip texinfo xclip bob tree-sitter-cli && \
 git clone https://github.com/vishalgit/kickstart.nvim ${XDG_CONFIG_HOME}/kickstart && \
 cd ${XDG_CONFIG_HOME}/kickstart && \
 git remote add upstream https://github.com/nvim-lua/kickstart.nvim && \
@@ -151,9 +151,7 @@ mise use -g core:node@lts && \
 mise use -g npm:neovim && \
 mise use -g npm:npm && \
 mise use -g npm:typescript && \
-mise use -g npm:tree-sitter-cli 
-RUN cd ${homedir}/.local/share/mise/shims && \
-ln -s markdownlint-cli2 markdownlint
+mise use -g dotnet
 
 
 RUN --mount=type=cache,target=/var/cache/pacman/pkg,sharing=locked \
