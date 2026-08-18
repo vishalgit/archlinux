@@ -108,12 +108,6 @@ git remote set-url --push upstream DISABLE && \
 echo "alias kvim='NVIM_APPNAME=kickstart nvim'" >> ${homedir}/.zshrc && \
 bob use stable 
 
-RUN git clone https://github.com/vishalgit/lazyvim ${XDG_CONFIG_HOME}/lazyvim && \
-cd ${XDG_CONFIG_HOME}/lazyvim && \
-git remote add upstream https://github.com/LazyVim/starter && \
-git remote set-url --push upstream DISABLE && \
-echo "alias lvim='NVIM_APPNAME=lazyvim nvim'" >> ${homedir}/.zshrc
-
 # Enable kata
 ARG kata_location=${homedir}/.local/bin
 ENV PATH="${kata_location}:${PATH}"
@@ -128,12 +122,11 @@ EOF
 RUN chmod u+x ${kata_location}/kata
 
 # Setup terminal emacs
-RUN git clone https://github.com/vishalgit/doom ${XDG_CONFIG_HOME}/doom
 RUN --mount=type=cache,target=/var/cache/pacman/pkg,sharing=locked \
-paru -Syu ttf-symbola ttf-nerd-fonts-symbols-mono emacs pandoc-bin shellcheck-bin fontconfig --noconfirm && \
-git clone --depth 1 https://github.com/doomemacs/doomemacs ${XDG_CONFIG_HOME}/emacs && \
+paru -Syu ttf-symbola ttf-nerd-fonts-symbols-mono emacs pandoc-bin shellcheck-bin fontconfig cmake --noconfirm && \
+rm -rf ${XDG_CONFIG_HOME}/emacs && \
+git clone --depth 1 https://github.com/doomemacs/core ${XDG_CONFIG_HOME}/emacs && \
 ${XDG_CONFIG_HOME}/emacs/bin/doom install --env --force && \
-${XDG_CONFIG_HOME}/emacs/bin/doom sync && \
 echo "alias cmacs='emacs -nw'" >> ${homedir}/.zshrc
 ENV PATH="${XDG_CONFIG_HOME}/emacs/bin:${PATH}"
 
@@ -149,13 +142,6 @@ RUN curl -fsSL https://claude.ai/install.sh | bash
 # Mise
 RUN curl https://mise.run/zsh | sh
 ENV PATH="${homedir}/.local/share/mise/shims:${PATH}"
-# Ruby on rails
-RUN mise settings ruby.compile=false && \ 
-mise use -g core:ruby && \
-echo "gem: --no-document" >> ${homedir}/.gemrc && \
-mkdir -p ${homedir}/.bundle && \
-echo "bundle config set --global no-doc true" >> ${homedir}/.bundle/config && \
-mise use -g gem:rails gem:neovim
 
 # Nodejs lts
 ENV NODE_EXTRA_CA_CERTS=${homedir}/.certs/cert.crt
@@ -165,7 +151,6 @@ mise use -g core:node@lts && \
 mise use -g npm:neovim && \
 mise use -g npm:npm && \
 mise use -g npm:typescript && \
-mise use -g npm:markdown-cli2 && \
 mise use -g npm:tree-sitter-cli 
 RUN cd ${homedir}/.local/share/mise/shims && \
 ln -s markdownlint-cli2 markdownlint
@@ -178,8 +163,7 @@ fzf \
 zoxide \
 bat \
 tldr \
-eza \
-zellij 
+eza 
 
 RUN echo 'eval "$(zoxide init zsh)"' >> ${homedir}/.zshrc && \
 echo "alias ls='eza'" >> ${homedir}/.zshrc && \
