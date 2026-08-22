@@ -65,7 +65,7 @@ git config --global core.attributesfile ${homedir}/.secrets/.gitattributes
 # Setup rust
 RUN rustup set profile minimal && \ 
 rustup default stable && \
-rustup component add rust-analyzer clippy rustfmt
+rustup component add rust-analyzer clippy rustfmt rust-src
 
 # Setup paru
 RUN git clone https://aur.archlinux.org/paru.git /tmp/paru && \
@@ -88,7 +88,7 @@ paru -Syu rclone --noconfirm && \
 mkdir -p ${homedir}/.config/rclone ${homedir}/org && \
 echo "alias orgbisync='rclone bisync "${homedir}"/org mega:org --resync --size-only'" >> ${homedir}/.zshrc && \
 echo "alias orgsync='rclone sync "${homedir}"/org mega:org'" >> ${homedir}/.zshrc && \
-echo "alias gitdc='gpg --decrypt "${homedir}"/.secrets/gh.gpg'" >> ${homedir}/.zshrc
+echo "alias gitdc='gpg --decrypt "${homedir}"/.secrets/gh.gpg'" >> ${homedir}/.zshrc 
 COPY --chown=${user}:${group} rclone.conf ${homedir}/.config/rclone/rclone.conf
 
 
@@ -100,7 +100,9 @@ ENV COLORTERM=truecolor
 ENV PATH="${homedir}/.local/share/bob/nvim-bin:${PATH}"
 
 RUN --mount=type=cache,target=/var/cache/pacman/pkg,sharing=locked \
-paru -Syu --noconfirm github-cli curl wget fd ripgrep unzip texinfo xclip bob tree-sitter-cli && \
+paru -Syu --noconfirm github-cli curl wget \
+fd ripgrep unzip texinfo xclip bob tree-sitter-cli \
+tidy stylelint js-beautify && \
 git clone https://github.com/vishalgit/kickstart.nvim ${XDG_CONFIG_HOME}/kickstart && \
 cd ${XDG_CONFIG_HOME}/kickstart && \
 git remote add upstream https://github.com/nvim-lua/kickstart.nvim && \
@@ -123,7 +125,7 @@ RUN chmod u+x ${kata_location}/kata
 
 # Setup terminal emacs
 RUN --mount=type=cache,target=/var/cache/pacman/pkg,sharing=locked \
-paru -Syu ttf-symbola ttf-nerd-fonts-symbols-mono emacs pandoc-bin shellcheck-bin fontconfig cmake --noconfirm && \
+paru -Syu ttf-symbola ttf-nerd-fonts-symbols-mono emacs pandoc-bin shellcheck-bin fontconfig cmake maim graphviz --noconfirm && \
 rm -rf ${XDG_CONFIG_HOME}/emacs && \
 git clone --depth 1 https://github.com/doomemacs/core ${XDG_CONFIG_HOME}/emacs && \
 ${XDG_CONFIG_HOME}/emacs/bin/doom install --env --force && \
@@ -169,4 +171,7 @@ echo "alias ll='eza -l --git --icons'" >> ${homedir}/.zshrc && \
 echo "alias la='eza -la --git --icons'" >> ${homedir}/.zshrc && \
 echo "alias lt='eza  --tree --level=3 --icons'" >> ${homedir}/.zshrc && \
 echo "source /usr/share/fzf/key-bindings.zsh" >> ${homedir}/.zshrc && \
-echo "alias gitdc=\"gpg --decrypt ${homedir}/.secrets/gh.gpg\"" >> ${homedir}/.zshrc
+echo "alias gitdc=\"gpg --decrypt ${homedir}/.secrets/gh.gpg\"" >> ${homedir}/.zshrc && \
+echo "PATH=${homedir}/.rustup/toolchains/stable-x86_64-unknown-linux-gnu/bin:$PATH" >> ${homedir}/.zshrc
+
+
