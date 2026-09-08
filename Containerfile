@@ -74,7 +74,10 @@ makepkg -si --noconfirm && \
 rm -rf /tmp/paru
 
 # Setup oh my zsh
-RUN sh -c "$(curl -fsSL https://raw.githubusercontent.com/ohmyzsh/ohmyzsh/master/tools/install.sh)" "" --unattended
+RUN sh -c "$(curl -fsSL https://raw.githubusercontent.com/ohmyzsh/ohmyzsh/master/tools/install.sh)" "" --unattended && \
+git clone --depth=1 https://github.com/romkatv/powerlevel10k.git ${homedir}/.oh-my-zsh/custom/themes/powerlevel10k && \
+sed -i 's/^ZSH_THEME=.*/ZSH_THEME="powerlevel10k\/powerlevel10k"/' ${homedir}/.zshrc
+
 
 # Setup tmux
 RUN --mount=type=cache,target=/var/cache/pacman/pkg,sharing=locked \
@@ -118,7 +121,7 @@ git clone https://github.com/vishalgit/vim-kata && mv vim-kata ${homedir}/.vim-k
 cat > ${kata_location}/kata <<'EOF'
 #!/bin/bash
 export NVIM_APPNAME=kickstart
-cd /home/vishal/.vim-kata
+cd $HOME/.vim-kata
 ./run.sh
 EOF
 RUN chmod u+x ${kata_location}/kata
