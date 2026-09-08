@@ -178,4 +178,8 @@ echo "alias gitdc=\"gpg --decrypt ${homedir}/.secrets/gh.gpg\"" >> ${homedir}/.z
 echo 'export PATH="$HOME/.cargo/bin:$HOME/.rustup/toolchains/stable-x86_64-unknown-linux-gnu/bin:$PATH"' >> ${homedir}/.zshrc && \
 echo 'export PROMPT_EOL_MARK=""' >> ${homedir}/.zshrc
 
+# Setup cargo leptos development
+RUN cargo install cargo-binstall && \
+cargo binstall --no-confirm trunk cargo-leptos cargo-watch
+
 
