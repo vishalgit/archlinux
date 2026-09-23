@@ -167,6 +167,7 @@ zoxide \
 bat \
 tldr \
 eza 
+ENV SHELL=/usr/bin/zsh
 
 RUN echo 'eval "$(zoxide init zsh)"' >> ${homedir}/.zshrc && \
 echo "alias ls='eza'" >> ${homedir}/.zshrc && \
