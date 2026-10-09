@@ -105,7 +105,7 @@ ENV PATH="${homedir}/.local/share/bob/nvim-bin:${PATH}"
 RUN --mount=type=cache,target=/var/cache/pacman/pkg,sharing=locked \
 paru -Syu --noconfirm github-cli curl wget \
 fd ripgrep unzip texinfo xclip bob tree-sitter-cli \
-tidy stylelint js-beautify && \
+tidy stylelint js-beautify fontconfig && \
 git clone https://github.com/vishalgit/kickstart.nvim ${XDG_CONFIG_HOME}/kickstart && \
 cd ${XDG_CONFIG_HOME}/kickstart && \
 git remote add upstream https://github.com/nvim-lua/kickstart.nvim && \
