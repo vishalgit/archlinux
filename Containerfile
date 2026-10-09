@@ -126,15 +126,6 @@ cd $HOME/.vim-kata
 EOF
 RUN chmod u+x ${kata_location}/kata
 
-# Setup terminal emacs
-RUN --mount=type=cache,target=/var/cache/pacman/pkg,sharing=locked \
-paru -Syu ttf-symbola ttf-nerd-fonts-symbols-mono emacs pandoc-bin shellcheck-bin fontconfig cmake maim graphviz --noconfirm && \
-rm -rf ${XDG_CONFIG_HOME}/emacs && \
-git clone --depth 1 https://github.com/doomemacs/core ${XDG_CONFIG_HOME}/emacs && \
-${XDG_CONFIG_HOME}/emacs/bin/doom install --env --force && \
-echo "alias cmacs='emacs -nw'" >> ${homedir}/.zshrc
-ENV PATH="${XDG_CONFIG_HOME}/emacs/bin:${PATH}"
-
 # Set up nerdfont
 RUN mkdir -p ${homedir}/.fonts && \
 wget -q --show-progress https://github.com/ryanoasis/nerd-fonts/releases/latest/download/JetBrainsMono.tar.xz -O ${homedir}/JetBrainsMono.tar.xz && \
@@ -179,8 +170,5 @@ echo "alias gitdc=\"gpg --decrypt ${homedir}/.secrets/gh.gpg\"" >> ${homedir}/.z
 echo 'export PATH="$HOME/.cargo/bin:$HOME/.rustup/toolchains/stable-x86_64-unknown-linux-gnu/bin:$PATH"' >> ${homedir}/.zshrc && \
 echo 'export PROMPT_EOL_MARK=""' >> ${homedir}/.zshrc
 
-# Setup cargo leptos development
-RUN cargo install cargo-binstall && \
-cargo binstall --no-confirm trunk cargo-leptos cargo-watch
 
 
