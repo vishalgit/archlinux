@@ -44,6 +44,13 @@ sed -i 's/#en_US.UTF-8 UTF-8/en_US.UTF-8 UTF-8/' /etc/locale.gen && \
 locale-gen && \
 echo "LANG=en_US.UTF-8" > /etc/locale.conf
 
+# Docker CLI
+ARG docker_gid=969
+RUN --mount=type=cache,target=/var/cache/pacman/pkg,sharing=locked \
+pacman -S --noconfirm docker docker-buildx docker-compose && \
+(getent group docker && groupmod -g ${docker_gid} docker || groupadd -g ${docker_gid} docker) && \
+usermod -aG docker ${user}
+
 USER ${user}
 WORKDIR ${homedir}
 
@@ -149,7 +156,6 @@ mise use -g npm:npm && \
 mise use -g npm:typescript && \
 mise use -g dotnet
 
-
 RUN --mount=type=cache,target=/var/cache/pacman/pkg,sharing=locked \
 paru -Syu --noconfirm yazi \
 jq \
@@ -169,6 +175,4 @@ echo "source /usr/share/fzf/key-bindings.zsh" >> ${homedir}/.zshrc && \
 echo "alias gitdc=\"gpg --decrypt ${homedir}/.secrets/gh.gpg\"" >> ${homedir}/.zshrc && \
 echo 'export PATH="$HOME/.cargo/bin:$HOME/.rustup/toolchains/stable-x86_64-unknown-linux-gnu/bin:$PATH"' >> ${homedir}/.zshrc && \
 echo 'export PROMPT_EOL_MARK=""' >> ${homedir}/.zshrc
-
-
 
