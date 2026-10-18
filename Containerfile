@@ -170,7 +170,7 @@ RUN echo 'eval "$(zoxide init zsh)"' >> ${homedir}/.zshrc && \
 echo "alias ls='eza'" >> ${homedir}/.zshrc && \
 echo "alias ll='eza -l --git --icons'" >> ${homedir}/.zshrc && \
 echo "alias la='eza -la --git --icons'" >> ${homedir}/.zshrc && \
-echo "alias lt='eza  --tree --level=3 --icons'" >> ${homedir}/.zshrc && \
+echo "alias lt='eza -A --tree --level=3 --icons'" >> ${homedir}/.zshrc && \
 echo "source /usr/share/fzf/key-bindings.zsh" >> ${homedir}/.zshrc && \
 echo "alias gitdc=\"gpg --decrypt ${homedir}/.secrets/gh.gpg\"" >> ${homedir}/.zshrc && \
 echo 'export PATH="$HOME/.cargo/bin:$HOME/.rustup/toolchains/stable-x86_64-unknown-linux-gnu/bin:$PATH"' >> ${homedir}/.zshrc && \
