@@ -45,11 +45,8 @@ locale-gen && \
 echo "LANG=en_US.UTF-8" > /etc/locale.conf
 
 # Docker CLI
-ARG docker_gid=969
 RUN --mount=type=cache,target=/var/cache/pacman/pkg,sharing=locked \
-pacman -S --noconfirm docker docker-buildx docker-compose && \
-(getent group docker && groupmod -g ${docker_gid} docker || groupadd -g ${docker_gid} docker) && \
-usermod -aG docker ${user}
+pacman -S --noconfirm docker docker-buildx docker-compose 
 
 USER ${user}
 WORKDIR ${homedir}
