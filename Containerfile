@@ -46,25 +46,21 @@ echo "LANG=en_US.UTF-8" > /etc/locale.conf
 
 # Docker CLI
 RUN --mount=type=cache,target=/var/cache/pacman/pkg,sharing=locked \
-pacman -S --noconfirm docker docker-buildx docker-compose 
+pacman -S --noconfirm docker docker-buildx docker-compose github-cli
 
 USER ${user}
 WORKDIR ${homedir}
 
 # Setup git config & git authentication
-COPY --chown=${user}:${group} gh.gpg ${homedir}/.secrets/gh.gpg
 COPY --chown=${user}:${group} .gitattributes ${homedir}/.secrets/.gitattributes
-COPY --chown=${user}:${group} --chmod=755 gh-cred-helper.sh ${homedir}/.secrets/gh-cred-helper.sh
 RUN git config --global init.defaultBranch main && \
 git config --global core.editor nvim && \
 git config --global user.name ${name} && \
 git config --global user.email ${email} && \
 git config --global core.editor "nvim" && \
 git config --global pull.rebase true && \
-git config --global credential.helper ${homedir}/.secrets/gh-cred-helper.sh && \
 mkdir -p ${homedir}/.secrets && \
 git config --global core.attributesfile ${homedir}/.secrets/.gitattributes
-
 
 # Setup rust
 RUN rustup set profile minimal && \ 
@@ -92,12 +88,9 @@ COPY --chown=${user}:${group} tmux.conf ${homedir}/.tmux.conf
 # Setup rclone
 RUN --mount=type=cache,target=/var/cache/pacman/pkg,sharing=locked \
 paru -Syu rclone --noconfirm && \
-mkdir -p ${homedir}/.config/rclone ${homedir}/org && \
+mkdir -p ${homedir}/org && \
 echo "alias orgbisync='rclone bisync "${homedir}"/org mega:org --resync --size-only'" >> ${homedir}/.zshrc && \
-echo "alias orgsync='rclone sync "${homedir}"/org mega:org'" >> ${homedir}/.zshrc && \
-echo "alias gitdc='gpg --decrypt "${homedir}"/.secrets/gh.gpg'" >> ${homedir}/.zshrc 
-COPY --chown=${user}:${group} rclone.conf ${homedir}/.config/rclone/rclone.conf
-
+echo "alias orgsync='rclone sync "${homedir}"/org mega:org'" >> ${homedir}/.zshrc 
 
 # Setup single editor neovim 
 ENV EDITOR=nvim
@@ -163,13 +156,26 @@ tldr \
 eza 
 ENV SHELL=/usr/bin/zsh
 
+RUN cat >> ${homedir}/.zshrc <<'EOF'
+[ -r /run/secrets/gh_token ] && export GH_TOKEN=$(cat /run/secrets/gh_token)
+[ -r /run/secrets/mega_pass ] && export RCLONE_CONFIG_MEGA_PASS=$(cat /run/secrets/mega_pass)
+[ -r /run/secrets/gh_token ] && export DEEPSEEK_API_KEY=$(cat /run/secrets/deepseek_api)
+export RCLONE_CONFIG_MEGA_TYPE=mega
+export RCLONE_CONFIG_MEGA_USER=vishal.reply@gmail.com
+EOF
+
 RUN echo 'eval "$(zoxide init zsh)"' >> ${homedir}/.zshrc && \
 echo "alias ls='eza'" >> ${homedir}/.zshrc && \
 echo "alias ll='eza -l --git --icons'" >> ${homedir}/.zshrc && \
 echo "alias la='eza -la --git --icons'" >> ${homedir}/.zshrc && \
 echo "alias lt='eza -A --tree --level=3 --icons'" >> ${homedir}/.zshrc && \
 echo "source /usr/share/fzf/key-bindings.zsh" >> ${homedir}/.zshrc && \
-echo "alias gitdc=\"gpg --decrypt ${homedir}/.secrets/gh.gpg\"" >> ${homedir}/.zshrc && \
 echo 'export PATH="$HOME/.cargo/bin:$HOME/.rustup/toolchains/stable-x86_64-unknown-linux-gnu/bin:$PATH"' >> ${homedir}/.zshrc && \
 echo 'export PROMPT_EOL_MARK=""' >> ${homedir}/.zshrc
 
+COPY --chown=${user}:${group} p10k.zsh ${homedir}/.p10k.zsh
+RUN echo '[[ ! -f ~/.p10k.zsh ]] || source ~/.p10k.zsh' >> ${homedir}/.zshrc
+RUN printf '%s\n' \
+  'if [[ -r "${XDG_CACHE_HOME:-$HOME/.cache}/p10k-instant-prompt-${(%):-%n}.zsh" ]]; then' \
+  '  source "${XDG_CACHE_HOME:-$HOME/.cache}/p10k-instant-prompt-${(%):-%n}.zsh"' \
+  'fi' | cat - ${homedir}/.zshrc > /tmp/zshrc && mv /tmp/zshrc ${homedir}/.zshrc

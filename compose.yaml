@@ -1,0 +1,29 @@
+# compose.yaml
+services:
+  archlinux:
+    image: archlinux-image
+    container_name: archlinux-container
+    network_mode: host
+    shm_size: 4g
+    cap_add:
+      - SYS_PTRACE
+    security_opt:
+      - seccomp=unconfined
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+    group_add:
+      - 966
+    secrets:
+      - gh_token
+      - mega_pass
+      - deepseek_api
+    stdin_open: true
+    tty: true
+
+secrets:
+  gh_token:
+    file: ~/.all_secrets/gh_token
+  mega_pass:
+    file: ~/.all_secrets/mega_pass
+  deepseek_api:
+    file: ~/.all_secrets/deepseek_api
