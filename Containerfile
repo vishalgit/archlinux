@@ -46,10 +46,13 @@ echo "LANG=en_US.UTF-8" > /etc/locale.conf
 
 # Docker CLI
 RUN --mount=type=cache,target=/var/cache/pacman/pkg,sharing=locked \
-pacman -S --noconfirm docker docker-buildx docker-compose github-cli
+pacman -S --noconfirm docker docker-buildx docker-compose github-cli sops age
 
 USER ${user}
 WORKDIR ${homedir}
+
+# Setup secrets
+COPY --chown=${user}:${group} key.age secrets.enc.yaml ${homedir}/.secrets/
 
 # Setup git config & git authentication
 COPY --chown=${user}:${group} .gitattributes ${homedir}/.secrets/.gitattributes
@@ -88,9 +91,19 @@ COPY --chown=${user}:${group} tmux.conf ${homedir}/.tmux.conf
 # Setup rclone
 RUN --mount=type=cache,target=/var/cache/pacman/pkg,sharing=locked \
 paru -Syu rclone --noconfirm && \
-mkdir -p ${homedir}/org && \
-echo "alias orgbisync='rclone bisync "${homedir}"/org mega:org --resync --size-only'" >> ${homedir}/.zshrc && \
-echo "alias orgsync='rclone sync "${homedir}"/org mega:org'" >> ${homedir}/.zshrc 
+mkdir -p ${homedir}/org ${homedir}/.config/rclone 
+COPY --chown=${user}:${group} rclone.conf ${homedir}/.config/rclone/rclone.conf
+RUN cat >> ${homedir}/.zshrc <<'EOF'
+unlock() {
+  local key
+  key=$(age -d $HOME/.secrets/key.age) || return 1
+  set -a
+  source <(SOPS_AGE_KEY="$key" sops decrypt --output-type dotenv $HOME/.secrets/secrets.enc.yaml)
+  set +a
+}
+alias orgbisync='rclone bisync $HOME/org mega:org --resync --size-only'
+alias orgsync='rclone sync $HOME/org mega:org'
+EOF
 
 # Setup single editor neovim 
 ENV EDITOR=nvim
@@ -107,7 +120,7 @@ git clone https://github.com/vishalgit/kickstart.nvim ${XDG_CONFIG_HOME}/kicksta
 cd ${XDG_CONFIG_HOME}/kickstart && \
 git remote add upstream https://github.com/nvim-lua/kickstart.nvim && \
 git remote set-url --push upstream DISABLE && \
-echo "alias kvim='NVIM_APPNAME=kickstart nvim'" >> ${homedir}/.zshrc && \
+echo 'alias kvim="NVIM_APPNAME=kickstart nvim"' >> ${homedir}/.zshrc && \ 
 bob use stable 
 
 # Enable kata
@@ -156,13 +169,6 @@ tldr \
 eza 
 ENV SHELL=/usr/bin/zsh
 
-RUN cat >> ${homedir}/.zshrc <<'EOF'
-[ -r /run/secrets/gh_token ] && export GH_TOKEN=$(cat /run/secrets/gh_token)
-[ -r /run/secrets/mega_pass ] && export RCLONE_CONFIG_MEGA_PASS=$(cat /run/secrets/mega_pass)
-[ -r /run/secrets/gh_token ] && export DEEPSEEK_API_KEY=$(cat /run/secrets/deepseek_api)
-export RCLONE_CONFIG_MEGA_TYPE=mega
-export RCLONE_CONFIG_MEGA_USER=vishal.reply@gmail.com
-EOF
 
 RUN echo 'eval "$(zoxide init zsh)"' >> ${homedir}/.zshrc && \
 echo "alias ls='eza'" >> ${homedir}/.zshrc && \
