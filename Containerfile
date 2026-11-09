@@ -86,7 +86,7 @@ sed -i 's/^ZSH_THEME=.*/ZSH_THEME="powerlevel10k\/powerlevel10k"/' ${homedir}/.z
 RUN --mount=type=cache,target=/var/cache/pacman/pkg,sharing=locked \
 paru -Syu tmux --noconfirm && \
 git clone https://github.com/tmux-plugins/tpm ${homedir}/.tmux/plugins/tpm
-COPY --chown=${user}:${group} tmux.conf ${homedir}/.tmux.conf
+COPY --chown=${user}:${group} tmux.conf ${homedir}/.config/tmux/tmux.conf
 
 # Setup rclone
 RUN --mount=type=cache,target=/var/cache/pacman/pkg,sharing=locked \
