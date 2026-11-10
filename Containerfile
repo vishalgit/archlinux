@@ -171,14 +171,30 @@ tldr \
 eza 
 ENV SHELL=/usr/bin/zsh
 
+# Setup emacs
+RUN --mount=type=cache,target=/var/cache/pacman/pkg,sharing=locked \
+paru -Syu --noconfirm \
+emacs \
+cmake \
+libvterm \
+ttf-symbola \
+maim \
+pandoc-bin \
+graphviz \
+shellcheck-bin && \
+rm -rf ${homedir}/.config/emacs && \
+git clone --depth 1 https://github.com/doomemacs/core ${homedir}/.config/emacs && \
+${homedir}/.config/emacs/bin/doom install --force
+
 
 RUN echo 'eval "$(zoxide init zsh)"' >> ${homedir}/.zshrc && \
 echo "alias ls='eza'" >> ${homedir}/.zshrc && \
 echo "alias ll='eza -l --git --icons'" >> ${homedir}/.zshrc && \
 echo "alias la='eza -la --git --icons'" >> ${homedir}/.zshrc && \
 echo "alias lt='eza -A --tree --level=3 --icons'" >> ${homedir}/.zshrc && \
+echo "alias cmacs='emacs -nw'" >> ${homedir}/.zshrc && \
 echo "source /usr/share/fzf/key-bindings.zsh" >> ${homedir}/.zshrc && \
-echo 'export PATH="$HOME/.cargo/bin:$HOME/.rustup/toolchains/stable-x86_64-unknown-linux-gnu/bin:$PATH"' >> ${homedir}/.zshrc && \
+echo 'export PATH="$HOME/.config/emacs/bin:$HOME/.cargo/bin:$HOME/.rustup/toolchains/stable-x86_64-unknown-linux-gnu/bin:$PATH"' >> ${homedir}/.zshrc && \
 echo 'export PROMPT_EOL_MARK=""' >> ${homedir}/.zshrc
 
 COPY --chown=${user}:${group} p10k.zsh ${homedir}/.p10k.zsh
