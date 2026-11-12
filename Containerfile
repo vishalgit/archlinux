@@ -159,6 +159,7 @@ mise use -g npm:npm && \
 mise use -g npm:typescript && \
 mise use -g npm:stylelint && \
 mise use -g npm:js-beautify && \
+mise use -g npm:stylelint-config-standard-scss && \
 mise use -g dotnet
 
 RUN --mount=type=cache,target=/var/cache/pacman/pkg,sharing=locked \
