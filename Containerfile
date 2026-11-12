@@ -1,16 +1,8 @@
 # syntax=docker/dockerfile:1
 FROM archlinux:latest
 
-RUN sed -i 's|https://|http://|g' /etc/pacman.d/mirrorlist
-RUN --mount=type=cache,target=/var/cache/pacman/pkg,sharing=locked \
-pacman -Sy --noconfirm aria2 rate-mirrors && \
-sed -i '/^\[options\]/a XferCommand = /usr/bin/aria2c --allow-overwrite=true --continue=true --file-allocation=none --log-level=error --max-tries=3 --max-connection-per-server=2 --max-file-not-found=5 --min-split-size=5M --no-conf --remote-time=true --summary-interval=60 --timeout=5 --dir=/ --out %o %u' /etc/pacman.conf
-
 COPY cert.crt /etc/ca-certificates/trust-source/anchors/
-RUN trust extract-compat && \
-sed -i 's|http://|https://|g' /etc/pacman.d/mirrorlist
-
-RUN rate-mirrors --allow-root arch --max-delay 21600 | tee /etc/pacman.d/mirrorlist
+RUN trust extract-compat 
 
 RUN --mount=type=cache,target=/var/cache/pacman/pkg,sharing=locked \
 pacman -Syu --noconfirm && \
@@ -139,9 +131,11 @@ RUN chmod u+x ${kata_location}/kata
 # Set up nerdfont
 RUN mkdir -p ${homedir}/.fonts && \
 wget -q --show-progress https://github.com/ryanoasis/nerd-fonts/releases/latest/download/JetBrainsMono.tar.xz -O ${homedir}/JetBrainsMono.tar.xz && \
+wget -q --show-progress https://github.com/ryanoasis/nerd-fonts/releases/latest/download/NerdFontsSymbolsOnly.tar.xz -O ${homedir}/NerdFontsSymbolsOnly.tar.xz && \
 tar -xvf ${homedir}/JetBrainsMono.tar.xz -C ${homedir}/.fonts && \
+tar -xvf ${homedir}/NerdFontsSymbolsOnly.tar.xz -C ${homedir}/.fonts && \
 fc-cache -fv ${homedir}/.fonts \
-&& rm -rf ${homedir}/JetBrainsMono.tar.xz
+&& rm -rf ${homedir}/JetBrainsMono.tar.xz NerdFontsSymbolsOnly.tar.xz
 
 # Claude Code
 RUN curl -fsSL https://claude.ai/install.sh | bash
@@ -159,8 +153,12 @@ mise use -g npm:npm && \
 mise use -g npm:typescript && \
 mise use -g npm:stylelint && \
 mise use -g npm:js-beautify && \
-mise use -g npm:stylelint-config-standard-scss && \
-mise use -g dotnet
+mise use -g npm:stylelint npm:stylelint-config-standard-scss npm:stylelint-order && \
+mise use -g npm:vscode-langservers-extracted npm:prettier
+
+RUN mise use -g dotnet && \
+mise use -g dotnet:csharpier && \
+mise use -g 'dotnet:roslyn-language-server[prerelease=true]'
 
 RUN --mount=type=cache,target=/var/cache/pacman/pkg,sharing=locked \
 paru -Syu --noconfirm yazi \
@@ -173,10 +171,17 @@ eza
 ENV SHELL=/usr/bin/zsh
 
 # Setup emacs
+RUN wget -q --show-progress https://github.com/Samsung/netcoredbg/releases/latest/download/netcoredbg-linux-amd64.tar.gz -O ${homedir}/netcoredbg-linux-amd64.tar.gz && \
+tar -xvf ${homedir}/netcoredbg-linux-amd64.tar.gz -C ${homedir}/.local/bin && \
+rm -rf ${homedir}/netcoredbg-linux-amd64.tar.gz
+
+RUN echo 'export PATH="$HOME/.config/emacs/bin:$HOME/.cargo/bin:$HOME/.rustup/toolchains/stable-x86_64-unknown-linux-gnu/bin:$PATH"' >> ${homedir}/.zshrc
+
 RUN --mount=type=cache,target=/var/cache/pacman/pkg,sharing=locked \
 paru -Syu --noconfirm \
 emacs \
 cmake \
+lldb \
 libvterm \
 ttf-symbola \
 maim \
@@ -186,6 +191,14 @@ shellcheck-bin && \
 rm -rf ${homedir}/.config/emacs && \
 git clone --depth 1 https://github.com/doomemacs/core ${homedir}/.config/emacs && \
 ${homedir}/.config/emacs/bin/doom install --force
+COPY --chown=${user}:${group} configuration.org ${homedir}/org/configuration.org
+RUN emacs --batch --eval "(require 'ob-tangle)" --eval '(org-babel-tangle-file "~/org/configuration.org")' && \
+${homedir}/.config/emacs/bin/doom sync 
+
+
+RUN rustup target add wasm32-unknown-unknown && \
+cargo install cargo-binstall && \
+cargo binstall trunk cargo-leptos leptosfmt
 
 
 RUN echo 'eval "$(zoxide init zsh)"' >> ${homedir}/.zshrc && \
@@ -195,7 +208,6 @@ echo "alias la='eza -la --git --icons'" >> ${homedir}/.zshrc && \
 echo "alias lt='eza -A --tree --level=3 --icons'" >> ${homedir}/.zshrc && \
 echo "alias cmacs='emacs -nw'" >> ${homedir}/.zshrc && \
 echo "source /usr/share/fzf/key-bindings.zsh" >> ${homedir}/.zshrc && \
-echo 'export PATH="$HOME/.config/emacs/bin:$HOME/.cargo/bin:$HOME/.rustup/toolchains/stable-x86_64-unknown-linux-gnu/bin:$PATH"' >> ${homedir}/.zshrc && \
 echo 'export PROMPT_EOL_MARK=""' >> ${homedir}/.zshrc
 
 COPY --chown=${user}:${group} p10k.zsh ${homedir}/.p10k.zsh

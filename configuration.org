@@ -1,0 +1,312 @@
+#+TITLE: All linux configuration
+
+* Doom Emacs Configuration
+** init.el
+#+begin_src emacs-lisp :tangle "~/.config/doom/init.el"
+;;; init.el -*- lexical-binding: t; -*-
+(doom! :input
+       :completion
+       (corfu +orderless)
+       (vertico +icons)
+       :ui
+       doom
+       dashboard
+       hl-todo
+       modeline
+       ophints
+       (popup +defaults)
+       (vc-gutter +pretty)
+       vi-tilde-fringe
+       workspaces
+       :editor
+       (evil +everywhere)
+       file-templates
+       fold
+       snippets
+       (whitespace +guess +trim)
+       emmet
+       :emacs
+       dired
+       electric
+       tramp
+       undo
+       vc
+       :term
+       vterm
+       :checkers
+       syntax
+       :tools
+       (eval +overlay)
+       lookup
+       magit
+       (lsp +eglot)
+       (debugger +lsp)
+       :os
+       (:if (featurep :system 'macos) macos)
+       :lang
+       emacs-lisp
+       markdown
+       (org +roam +dragndrop +pretty)
+       sh
+       (csharp +lsp +dap)
+       (rust +lsp +dap)
+       (web +lsp)
+       :config
+       (default +bindings +smartparens))
+#+end_src
+** config.el 
+*** lexial binding
+#+begin_src emacs-lisp :tangle "~/.config/doom/config.el"
+;;; $DOOMDIR/config.el -*- lexical-binding: t; -*-
+#+end_src
+*** git
+#+begin_src emacs-lisp :tangle "~/.config/doom/config.el"
+(setq user-full-name "vishal saxena"
+      user-mail-address "vishal.reply@gmail.com")
+#+end_src
+*** local leader
+#+begin_src emacs-lisp :tangle "~/.config/doom/config.el"
+(setq doom-localleader-key ","
+      doom-localleader-alt-key "M-,"
+      evil-snipe-override-evil-repeat-keys nil)
+#+end_src
+*** evil escape key
+#+begin_src emacs-lisp :tangle "~/.config/doom/config.el"
+(after! evil-escape
+  (setq evil-escape-key-sequence "jk")
+  (setq evil-escape-delay 0.2))
+#+end_src
+*** font, theme and options
+#+begin_src emacs-lisp :tangle "~/.config/doom/config.el"
+(setq doom-font (font-spec :family "jetbrainsmono nerd font mono" :size 18 :weight 'medium)
+      doom-variable-pitch-font (font-spec :family "jetbrainsmono nerd font propo" :size 20))
+
+(setq display-line-numbers-type 'relative)
+
+(setq doom-theme 'doom-tokyo-night)
+#+end_src
+*** org
+**** org directory
+#+begin_src emacs-lisp :tangle "~/.config/doom/config.el"
+(setq org-directory "~/org/")
+#+end_src
+**** org todo keywords set
+#+begin_src emacs-lisp :tangle "~/.config/doom/config.el"
+(after! org
+  (setq org-todo-keywords
+        '((sequence "TODO(t)" "IN-PROGRESS(i)" "WAITING(w)" "|" "DONE(d)" "CANCELLED(c)"))))
+#+end_src
+**** org task capture templates
+#+begin_src emacs-lisp :tangle "~/.config/doom/config.el"
+(after! org
+  (setq org-default-notes-file (expand-file-name "inbox.org" org-directory))
+  (add-to-list 'org-capture-templates
+               '("i" "inbox" entry
+                 (file "inbox.org")
+                 "* %?\n%u"
+                 :empty-lines 1)
+               :append))
+#+end_src
+*** eglot: roslyn language server for c#
+#+begin_src emacs-lisp :tangle "~/.config/doom/config.el"
+(after! eglot
+  ;; Point eglot to roslyn-language-server instead of omnisharp
+  (set-eglot-client! 'csharp-mode
+                     '("roslyn-language-server" "--stdio"))
+  ;; Optional: Roslyn settings (inlay hints, code lens, etc.)
+  (add-to-list 'eglot-server-programs
+               '(csharp-mode . ("roslyn-language-server" "--stdio"))))
+#+end_src
+*** eglot: rust analyzer for Rust
+#+begin_src emacs-lisp :tangle "~/.config/doom/config.el"
+(after! eglot
+  (set-eglot-client! 'rustic-mode
+                     '("rust-analyzer")))
+#+end_src
+*** Rust formatting setup
+#+begin_src emacs-lisp :tangle "~/.config/doom/config.el"
+(after! rustic
+  (setq rustic-format-on-save t)
+  (setq rustic-lsp-server 'rust-analyzer))
+(defun my/leptosfmt-buffer ()
+  "Format current buffer with leptosfmt, then rustfmt"
+  (interactive)
+  (when (and (eq major-mode 'rustic-mode)
+             (save-excursion
+               (goto-char (point-min))
+               (re-search-forward "view!" nil t)))
+    (let ((file (buffer-file-name)))
+      (when file
+        (save-buffer)
+        (call-process "leptosfmt" nil nil nil file)
+        (revert-buffer t t t)))))
+(add-hook 'rustic-mode-hook
+          (lambda ()
+            (add-hook 'before-save-hook #'my/leptosfmt-buffer nil t)))
+#+end_src
+***  format-all
+#+begin_src emacs-lisp :tangle "~/.config/doom/config.el"
+(after! emmet-mode
+  (add-hook 'web-mode-hook #'emmet-mode)
+  (add-hook 'css-mode-hook #'emmet-mode)
+  (add-hook 'scss-mode-hook #'emmet-mode)
+  (add-hook 'html-mode-hook #'emmet-mode)
+
+  (setq emmet-indentation 2)
+  (setq emmet-move-cursor-between-quotes t)
+
+  (map! :map emmet-mode-keymap
+        "C-;" #'emmet-expand-line))
+(after! web-mode
+  (add-to-list 'auto-mode-alist '("\\.razor\\'" . web-mode))
+  (add-to-list 'auto-mode-alist '("\\.cshtml\\'" . web-mode))
+  (add-to-list 'auto-mode-alist '("\\.html?\\'" . web-mode))
+  (add-to-list 'auto-mode-alist '("\\.phtml\\'" . web-mode))
+  (add-to-list 'auto-mode-alist '("\\.tpl\\.php\\'" . web-mode))
+  (add-to-list 'auto-mode-alist '("\\.[agj]sp\\'" . web-mode))
+  (add-to-list 'auto-mode-alist '("\\.as[cp]x\\'" . web-mode))
+  (add-to-list 'auto-mode-alist '("\\.erb\\'" . web-mode))
+  (add-to-list 'auto-mode-alist '("\\.mustache\\'" . web-mode))
+  (add-to-list 'auto-mode-alist '("\\.djhtml\\'" . web-mode))
+
+  (setq web-mode-markup-indent-offset 2)
+  (setq web-mode-css-indent-offset 2)
+  (setq web-mode-code-indent-offset 2)
+  (setq web-mode-attr-indent-offset 2)
+  (setq web-mode-enable-auto-pairing t)
+  (setq web-mode-enable-auto-closing t)
+  (setq web-mode-enable-current-element-highlight t)
+  (setq web-mode-enable-current-column-highlight t))
+
+(after! scss-mode
+  (setq scss-compile-at-save nil)
+  (setq css-indent-offset 2)
+  (add-hook 'scss-mode-hook #'format-all-mode))
+
+(after! css-mode
+  (setq css-indent-offset 2)
+  (add-hook 'css-mode-hook #'format-all-mode)
+  (add-hook 'css-mode-hook #'rainbow-mode))
+
+(after! eglot
+  (add-to-list 'eglot-server-programs
+               '(css-mode . ("vscode-css-language-server" "--stdio")))
+  (add-to-list 'eglot-server-programs
+               '(scss-mode . ("vscode-css-language-server" "--stdio"))))
+
+(after! format-all
+  (setq-default format-all-formatters
+                '(("C#" (csharpier))
+                  ("HTML" (prettier))
+                  ("CSS" (prettier))
+                  ("SCSS" (prettier)))))
+(after! eglot
+  (add-to-list 'eglot-server-programs
+               '(web-mode . ("roslyn-language-server" "--stdio"))))
+
+;; General
+(setq-default indent-tabs-mode nil)
+(setq tab-width 4)
+;; Eglot
+(after! eglot
+  (setq eglot-autoreconnect 5))
+#+end_src
+*** dap mode general settings
+#+begin_src emacs-lisp :tangle "~/.config/doom/config.el"
+(after! dap-mode
+  (setq dap-auto-configure-features
+        '(sessions locals breakpoints expressions repl controls tooltip))
+  (dap-mode 1)
+  (dap-ui-mode 1)
+  (dap-tooltip-mode 1)
+  (tooltip-mode 1))
+;; C# debugging via netcoredbg
+(after! dap-netcore
+  ;; point to netcoredbg bianry
+  (setq dap-netcore-debug-program
+        '("netcoredbg" "--interpreter=vscode"))
+  ;; Register a default launch configuration for dotnet projects
+  (dap-register-debug-template
+   "C# dotnet core launch"
+   (list :type "coreclr"
+         :request "launch"
+         :name "C# launch"
+         :program nil
+         :cwd nil
+         :stopAtEntry nil
+         :console "internalConsole")))
+;; rust debugging via rust-lldb
+(after! dap-lldb
+  ;; Register a default launch configuration for dotnet projects
+  (dap-register-debug-template
+   "Rust LLDB launch"
+   (list :type "lldb"
+         :request "launch"
+         :name "Rust Debug"
+         :program nil
+         :cwd nil
+         :arg []
+         :stopAtEntry nil)))
+#+end_src
+*** Optional auto detect project path
+#+begin_src emacs-lisp :tangle "~/.config/doom/config.el"
+;; C# auto find dll
+(defun my/dap-netcore-auto-program ()
+  "Auto detect the dotnet dll for debugging"
+  (let ((dll (car (file-expand-wildcards
+                   (expand-file-name "bin/Debug/*/*.dll" (projectile-project-root))))))
+    (when dll
+      (setq-local dap-netcore-program dll ))))
+;; Rust auto-find binary
+(defun my/dap-rust-auto-program ()
+  "Auto detect the rust binary for debugging"
+  (let ((bin (expand-file-name
+              (concat "target/debug/" (file-name-nondirectory (projectile-project-root)))
+              (projectile-project-root))))
+    (when (file-exists-p bin)
+      (setq-local dap-lldb-program bin))))
+#+end_src
+** packages.el
+#+begin_src emacs-lisp :tangle "~/.config/doom/packages.el"
+;; -*- no-byte-compile: t; -*-
+;;; $DOOMDIR/packages.el
+(package! format-all)
+#+end_src
+** Software needed for this configuration
+*** ripgrep
+*** pandoc-bin (yay)
+*** shellcheck-bin (yay)
+*** fd
+*** git
+*** nerd fonts and symbola font(yay)
+*** rust
+*** rust-analyzer rustfmt(component add) clippy leptosfmt(cargo install)
+*** dotnet
+*** lldb
+*** cmake
+*** netcoredbg (yay)
+*** roslyn-language-server (dotnet tool -g install --prerelease)
+*** csharpier (dotnet tool -g)
+*** vscode-langservers-extracted (npm install -g)
+*** prettier (npm install -g)
+*** maim tidy (pacman)
+*** stylelint js-beautify (npm install -g)
+** Setup blog publishing
+#+begin_src emacs-lisp :tangle "~/.config/doom/config.el"
+(defvar my/blog-dir "~/org/vishalgit.github.io/")
+
+(defun my/blog-publish ()
+  "Export the whole blog to HTML locally."
+  (interactive)
+  (let ((default-directory my/blog-dir))
+    (load-file (expand-file-name "publish.el" my/blog-dir))))
+
+(defun my/blog-new-post (title)
+  "Create a new dated org post."
+  (interactive "sPost title: ")
+  (let* ((slug (downcase (replace-regexp-in-string "[^a-z0-9]+" "-" title)))
+         (file (format "%scontent/posts/%s-%s.org"
+                       my/blog-dir (format-time-string "%Y-%m-%d") slug)))
+    (find-file file)
+    (insert (format "#+TITLE: %s\n#+DATE: %s\n#+OPTIONS: toc:nil num:nil\n\n" title (format-time-string "%Y-%m-%d")))))
+#+end_src
