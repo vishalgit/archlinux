@@ -174,8 +174,7 @@ ENV SHELL=/usr/bin/zsh
 RUN wget -q --show-progress https://github.com/Samsung/netcoredbg/releases/latest/download/netcoredbg-linux-amd64.tar.gz -O ${homedir}/netcoredbg-linux-amd64.tar.gz && \
 tar -xvf ${homedir}/netcoredbg-linux-amd64.tar.gz -C ${homedir}/.local/bin && \
 rm -rf ${homedir}/netcoredbg-linux-amd64.tar.gz
-
-RUN echo 'export PATH="$HOME/.config/emacs/bin:$HOME/.cargo/bin:$HOME/.rustup/toolchains/stable-x86_64-unknown-linux-gnu/bin:$PATH"' >> ${homedir}/.zshrc
+ENV PATH="${homedir}/.config/emacs/bin:${homedir}/.cargo/bin:${homedir}/.rustup/toolchains/stable-x86_64-unknown-linux-gnu/bin:${PATH}"
 
 RUN --mount=type=cache,target=/var/cache/pacman/pkg,sharing=locked \
 paru -Syu --noconfirm \
