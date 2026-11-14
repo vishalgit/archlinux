@@ -79,6 +79,7 @@ RUN --mount=type=cache,target=/var/cache/pacman/pkg,sharing=locked \
 paru -Syu tmux --noconfirm && \
 git clone https://github.com/tmux-plugins/tpm ${homedir}/.tmux/plugins/tpm
 COPY --chown=${user}:${group} tmux.conf ${homedir}/.config/tmux/tmux.conf
+RUN ${homedir}/.tmux/plugins/tpm/bin/install_plugins
 
 # Setup rclone
 RUN --mount=type=cache,target=/var/cache/pacman/pkg,sharing=locked \
