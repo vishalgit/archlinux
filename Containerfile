@@ -95,6 +95,7 @@ unlock() {
 }
 alias orgbisync='rclone bisync $HOME/org mega:org --resync --size-only'
 alias orgsync='rclone bisync $HOME/org mega:org --size-only'
+alias kvim='[[ -z "${GH_TOKEN:-}" ]] && unlock;NVIM_APPNAME=kickstart nvim'
 EOF
 
 # Setup single editor neovim 
@@ -112,7 +113,6 @@ git clone https://github.com/vishalgit/kickstart.nvim ${XDG_CONFIG_HOME}/kicksta
 cd ${XDG_CONFIG_HOME}/kickstart && \
 git remote add upstream https://github.com/nvim-lua/kickstart.nvim && \
 git remote set-url --push upstream DISABLE && \
-echo 'alias kvim="NVIM_APPNAME=kickstart nvim"' >> ${homedir}/.zshrc && \ 
 bob use stable 
 
 # Enable kata
