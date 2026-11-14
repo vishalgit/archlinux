@@ -52,7 +52,6 @@ RUN git config --global init.defaultBranch main && \
 git config --global core.editor nvim && \
 git config --global user.name ${name} && \
 git config --global user.email ${email} && \
-git config --global core.editor "nvim" && \
 git config --global pull.rebase true && \
 mkdir -p ${homedir}/.secrets && \
 git config --global core.attributesfile ${homedir}/.secrets/.gitattributes
@@ -95,7 +94,7 @@ unlock() {
   set +a
 }
 alias orgbisync='rclone bisync $HOME/org mega:org --resync --size-only'
-alias orgsync='rclone sync $HOME/org mega:org'
+alias orgsync='rclone bisync $HOME/org mega:org --size-only'
 EOF
 
 # Setup single editor neovim 
