@@ -153,8 +153,10 @@ mise use -g npm:npm && \
 mise use -g npm:typescript && \
 mise use -g npm:stylelint && \
 mise use -g npm:js-beautify && \
-mise use -g npm:stylelint npm:stylelint-config-standard-scss npm:stylelint-order && \
-mise use -g npm:vscode-langservers-extracted npm:prettier
+mise use -g npm:stylelint-config-standard-scss && \
+mise use -g npm:stylelint-order && \
+mise use -g npm:vscode-langservers-extracted && \
+mise use -g npm:prettier
 
 RUN mise use -g dotnet && \
 mise use -g dotnet:csharpier && \
