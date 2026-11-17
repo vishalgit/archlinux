@@ -215,3 +215,67 @@ RUN printf '%s\n' \
   'if [[ -r "${XDG_CACHE_HOME:-$HOME/.cache}/p10k-instant-prompt-${(%):-%n}.zsh" ]]; then' \
   '  source "${XDG_CACHE_HOME:-$HOME/.cache}/p10k-instant-prompt-${(%):-%n}.zsh"' \
   'fi' | cat - ${homedir}/.zshrc > /tmp/zshrc && mv /tmp/zshrc ${homedir}/.zshrc
+
+# ── GUI: xrdp + i3 / i3status / dunst / feh ──────────────────────────────────
+# rdp_bind=127.0.0.1 → only reachable from this host (you use --net=host).
+# Set to 0.0.0.0 only if you connect from another machine AND changed the password.
+ARG rdp_bind=127.0.0.1
+ARG rdp_port=3389
+# Mod4 = Windows/Super key
+ARG i3_mod=Mod4
+
+RUN --mount=type=cache,target=/var/cache/pacman/pkg,sharing=locked \
+paru -Syu --noconfirm \
+tini \
+xorg-server xorg-xauth xorg-xrandr xorg-xsetroot \
+xrdp xorgxrdp \
+i3-wm i3status rofi dunst libnotify feh \
+alacritty dbus ttf-dejavu
+
+USER root
+# machine-id for D-Bus; bind xrdp listener (only the first port= line, the
+# [Xorg] session section also has a port= line that must stay -1)
+RUN dbus-uuidgen --ensure=/etc/machine-id && \
+sed -i "0,/^port=/s|^port=.*|port=tcp://${rdp_bind}:${rdp_port}|" /etc/xrdp/xrdp.ini && \
+sed -i 's/^autorun=.*/autorun=Xorg/' /etc/xrdp/xrdp.ini && \
+sed -i 's/^EnableUserWindowManager=.*/EnableUserWindowManager=false/' /etc/xrdp/sesman.ini && \
+printf 'allowed_users=anybody\nneeds_root_rights=no\n' > /etc/X11/Xwrapper.config
+COPY entrypoint.sh /usr/local/bin/entrypoint.sh
+RUN chmod 755 /usr/local/bin/entrypoint.sh
+USER ${user}
+
+# i3 config: start from the stock one (skips the first-run wizard), then add ours
+RUN mkdir -p ${homedir}/.config/i3 ${homedir}/Pictures && \
+cp /etc/i3/config ${homedir}/.config/i3/config && \
+sed -i "s/^set \$mod .*/set \$mod ${i3_mod}/" ${homedir}/.config/i3/config && \
+sed -i 's/^bindsym \$mod+d exec.*/bindsym $mod+d exec --no-startup-id rofi -show drun -show-icons/' ${homedir}/.config/i3/config && \
+sed -i 's/^bindsym \$mod+Return exec.*/bindsym $mod+Return exec alacritty/' ${homedir}/.config/i3/config && \
+cat >> ${homedir}/.config/i3/config <<'EOF'
+
+# ── container additions ──
+font pango:JetBrainsMono Nerd Font 10
+bindsym $mod+Tab exec --no-startup-id rofi -show window
+bindsym $mod+Shift+d exec --no-startup-id rofi -show run
+exec --no-startup-id dunst
+exec_always --no-startup-id sh -c '[ -f ~/Pictures/wallpaper.jpg ] && feh --no-fehbg --bg-fill ~/Pictures/wallpaper.jpg || xsetroot -solid "#1a1b26"'
+bindsym $mod+Shift+Return exec emacs
+EOF
+
+# Every xrdp login runs /etc/xrdp/startwm.sh → straight into i3.
+# Sessions start through PAM, so they do NOT inherit the container ENV;
+# entrypoint.sh writes it to /etc/environment, which pam_env loads at login.
+ENV TERMINAL=alacritty
+USER root
+RUN cat > /etc/xrdp/startwm.sh <<'EOF'
+#!/bin/bash
+export XDG_SESSION_TYPE=x11
+exec dbus-run-session -- i3
+EOF
+RUN chmod 755 /etc/xrdp/startwm.sh
+USER ${user}
+
+# tini as PID 1: reaps zombies from xrdp/X sessions and forwards signals.
+# Default command keeps the container alive in the background as a GUI box;
+# get a shell with: docker exec -it archlinux-container zsh
+ENTRYPOINT ["/usr/bin/tini", "-g", "--", "/usr/local/bin/entrypoint.sh"]
+CMD ["sleep", "infinity"]
