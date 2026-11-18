@@ -221,8 +221,6 @@ RUN printf '%s\n' \
 # Set to 0.0.0.0 only if you connect from another machine AND changed the password.
 ARG rdp_bind=127.0.0.1
 ARG rdp_port=3389
-# Mod4 = Windows/Super key
-ARG i3_mod=Mod4
 
 RUN --mount=type=cache,target=/var/cache/pacman/pkg,sharing=locked \
 paru -Syu --noconfirm \
@@ -230,7 +228,7 @@ tini \
 xorg-server xorg-xauth xorg-xrandr xorg-xsetroot \
 xrdp xorgxrdp \
 i3-wm i3status rofi dunst libnotify feh \
-alacritty dbus ttf-dejavu
+dbus ttf-dejavu i3lock xss-lock picom xterm kitty neovide firefox-esr-bin
 
 USER root
 # machine-id for D-Bus; bind xrdp listener (only the first port= line, the
@@ -242,29 +240,34 @@ sed -i 's/^EnableUserWindowManager=.*/EnableUserWindowManager=false/' /etc/xrdp/
 printf 'allowed_users=anybody\nneeds_root_rights=no\n' > /etc/X11/Xwrapper.config
 COPY entrypoint.sh /usr/local/bin/entrypoint.sh
 RUN chmod 755 /usr/local/bin/entrypoint.sh
+
+RUN mkdir -p /usr/lib/firefox-esr/distribution
+COPY firefox-policy.json /usr/lib/firefox-esr/distribution/policies.json
+
 USER ${user}
 
 # i3 config: start from the stock one (skips the first-run wizard), then add ours
-RUN mkdir -p ${homedir}/.config/i3 ${homedir}/Pictures && \
-cp /etc/i3/config ${homedir}/.config/i3/config && \
-sed -i "s/^set \$mod .*/set \$mod ${i3_mod}/" ${homedir}/.config/i3/config && \
-sed -i 's/^bindsym \$mod+d exec.*/bindsym $mod+d exec --no-startup-id rofi -show drun -show-icons/' ${homedir}/.config/i3/config && \
-sed -i 's/^bindsym \$mod+Return exec.*/bindsym $mod+Return exec alacritty/' ${homedir}/.config/i3/config && \
-cat >> ${homedir}/.config/i3/config <<'EOF'
-
-# ── container additions ──
-font pango:JetBrainsMono Nerd Font 10
-bindsym $mod+Tab exec --no-startup-id rofi -show window
-bindsym $mod+Shift+d exec --no-startup-id rofi -show run
-exec --no-startup-id dunst
-exec_always --no-startup-id sh -c '[ -f ~/Pictures/wallpaper.jpg ] && feh --no-fehbg --bg-fill ~/Pictures/wallpaper.jpg || xsetroot -solid "#1a1b26"'
-bindsym $mod+Shift+Return exec emacs
-EOF
+RUN mkdir -p ${homedir}/.config/i3 \
+${homedir}/.config/i3status \
+${homedir}/Pictures \
+${homedir}/.config/neovide \
+${homedir}/.config/kitty \
+${homedir}/.config/rofi
+COPY --chown=${user}:${group} i3status.config ${homedir}/.config/i3status/config
+COPY --chown=${user}:${group} i3.config ${homedir}/.config/i3/config 
+COPY --chown=${user}:${group} wall1.jpg ${homedir}/Pictures 
+COPY --chown=${user}:${group} wall2.jpg ${homedir}/Pictures 
+COPY --chown=${user}:${group} neovide.png ${homedir}/Pictures 
+COPY --chown=${user}:${group} neovide.toml ${homedir}/.config/neovide/config.toml 
+COPY --chown=${user}:${group} kitty.conf ${homedir}/.config/kitty/kitty.conf 
+COPY --chown=${user}:${group} config.rasi ${homedir}/.config/rofi/config.rasi
+COPY --chown=${user}:${group} neovide.desktop ${homedir}/.local/share/applications/neovide.desktop
+COPY --chown=${user}:${group} mimeapps.list ${homedir}/.config/mimeapps.list
 
 # Every xrdp login runs /etc/xrdp/startwm.sh → straight into i3.
 # Sessions start through PAM, so they do NOT inherit the container ENV;
 # entrypoint.sh writes it to /etc/environment, which pam_env loads at login.
-ENV TERMINAL=alacritty
+ENV TERMINAL=kitty
 USER root
 RUN cat > /etc/xrdp/startwm.sh <<'EOF'
 #!/bin/bash

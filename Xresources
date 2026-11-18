@@ -1,0 +1,15 @@
+! Font
+XTerm*faceName: JetBrainsMono Nerd Font
+XTerm*faceSize: 18
+
+! Remove scrollbar
+XTerm*scrollBar: false
+
+! Nice defaults
+XTerm*termName: xterm-256color
+XTerm*locale: true
+XTerm*utf8: 2
+Xterm*background: #282828
+Xterm*foreground: #ebdbb2
+Xterm*cursorColor: #ebdbb2
+XTerm*selectToClipboard: true

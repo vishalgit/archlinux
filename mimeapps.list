@@ -1,0 +1,18 @@
+[Default Applications]
+x-scheme-handler/http=firefox-esr.desktop
+x-scheme-handler/https=firefox-esr.desktop
+x-scheme-handler/about=firefox-esr.desktop
+text/html=firefox-esr.desktop
+inode/directory=thunar.desktop
+text/plain=neovide.desktop
+text/x-csrc=neovide.desktop
+text/x-python=neovide.desktop
+application/pdf=org.pwmt.zathura.desktop
+image/jpeg=feh.desktop
+image/png=feh.desktop
+image/gif=feh.desktop
+application/json=neovide.desktop
+text/markdown=neovide.desktop
+text/xml=neovide.desktop
+text/csv=neovide.desktop
+

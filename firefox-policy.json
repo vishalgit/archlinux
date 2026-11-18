@@ -1,0 +1,27 @@
+{
+  "policies": {
+    "Certificates": {
+      "ImportEnterpriseRoots": true,
+      "Install": [
+        "/home/vishal/.certs/cert.crt"
+      ]
+    },
+    "SearchEngines": {
+      "Default": "DuckDuckGo",
+      "Remove": ["Google", "Bing"]
+    },
+    "Preferences": {
+      "extensions.activeThemeID": "firefox-compact-dark@mozilla.org",
+      "browser.theme.content-theme": 0,
+      "browser.theme.toolbar-theme": 0,
+      "ui.systemUsesDarkTheme": 1,
+      "browser.in-content.dark-mode": true,
+      "layout.css.prefers-color-scheme.content-override": 0
+    },
+    "Homepage": {
+      "URL": "https://duckduckgo.com",
+      "StartPage": "homepage"
+    }
+  }
+}
+
