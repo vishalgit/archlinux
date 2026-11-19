@@ -1,8 +1,16 @@
 # syntax=docker/dockerfile:1
 FROM archlinux:latest
 
+RUN sed -i 's|https://|http://|g' /etc/pacman.d/mirrorlist
+RUN --mount=type=cache,target=/var/cache/pacman/pkg,sharing=locked \
+pacman -Sy --noconfirm aria2 rate-mirrors && \
+sed -i '/^\[options\]/a XferCommand = /usr/bin/aria2c --allow-overwrite=true --continue=true --file-allocation=none --log-level=error --max-tries=3 --max-connection-per-server=2 --max-file-not-found=5 --min-split-size=5M --no-conf --remote-time=true --summary-interval=60 --timeout=5 --dir=/ --out %o %u' /etc/pacman.conf
+
 COPY cert.crt /etc/ca-certificates/trust-source/anchors/
-RUN trust extract-compat 
+RUN trust extract-compat && \
+sed -i 's|http://|https://|g' /etc/pacman.d/mirrorlist
+
+RUN rate-mirrors --allow-root arch --max-delay 21600 | tee /etc/pacman.d/mirrorlist
 
 RUN --mount=type=cache,target=/var/cache/pacman/pkg,sharing=locked \
 pacman -Syu --noconfirm && \
