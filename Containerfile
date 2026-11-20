@@ -236,7 +236,7 @@ tini \
 xorg-server xorg-xauth xorg-xrandr xorg-xsetroot \
 xrdp xorgxrdp \
 i3-wm i3status rofi dunst libnotify feh \
-dbus ttf-dejavu i3lock xss-lock picom xterm kitty neovide firefox-esr-bin
+dbus ttf-dejavu i3lock xss-lock picom xterm kitty neovide firefox-esr-bin xdg-utils
 
 USER root
 # machine-id for D-Bus; bind xrdp listener (only the first port= line, the
@@ -249,8 +249,8 @@ printf 'allowed_users=anybody\nneeds_root_rights=no\n' > /etc/X11/Xwrapper.confi
 COPY entrypoint.sh /usr/local/bin/entrypoint.sh
 RUN chmod 755 /usr/local/bin/entrypoint.sh
 
-RUN mkdir -p /usr/lib/firefox-esr/distribution
-COPY firefox-policy.json /usr/lib/firefox-esr/distribution/policies.json
+RUN sudo mkdir -p /etc/firefox/policies
+COPY firefox-policy.json /etc/firefox/policies/policies.json
 
 USER ${user}
 
