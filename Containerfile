@@ -242,7 +242,7 @@ i3-wm i3status rofi dunst libnotify feh \
 dbus ttf-dejavu i3lock xss-lock picom xterm kitty neovide firefox-esr-bin xdg-utils \
 rage-encryption pinentry \
 thunar gvfs tumbler ffmpegthumbnailer \
-xsettingsd arc-gtk-theme papirus-icon-theme \
+xsettingsd gnome-themes-extra papirus-icon-theme \
 zathura zathura-pdf-mupdf inlyne-bin glow code \
 noto-fonts noto-fonts-emoji ttf-liberation
 
