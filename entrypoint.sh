@@ -11,8 +11,11 @@ env | grep -vE '^(HOME|USER|LOGNAME|HOSTNAME|PWD|OLDPWD|SHLVL|_|TERM|ENABLE_RDP)
 if [[ "${ENABLE_RDP:-1}" == 1 ]]; then
   sudo install -d -m 700 -o "$(id -u)" -g "$(id -g)" "/run/user/$(id -u)"
   sudo mkdir -p /run/xrdp
-  sudo rm -f /run/xrdp/*.pid /var/run/xrdp/*.pid      # stale pids from last stop
-
+    # Leftovers survive `docker stop` (/run and /tmp aren't tmpfs).
+  # Note: the pid files live directly in /run, not in /run/xrdp.
+  sudo rm -f /run/xrdp.pid /run/xrdp-sesman.pid
+  sudo rm -rf /run/xrdp/* /run/xrdp/.sesman.socket.lock
+  sudo rm -f /tmp/.X[0-9]*-lock /tmp/.X11-unix/X[0-9]*
   [[ -f /etc/xrdp/rsakeys.ini ]] || sudo xrdp-keygen xrdp /etc/xrdp/rsakeys.ini >/dev/null
   if [[ ! -f /etc/xrdp/cert.pem ]]; then
     sudo openssl req -x509 -newkey rsa:2048 -nodes -days 3650 -subj "/CN=$(hostname)" \

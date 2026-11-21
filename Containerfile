@@ -232,6 +232,7 @@ RUN printf '%s\n' \
 # Set to 0.0.0.0 only if you connect from another machine AND changed the password.
 ARG rdp_bind=127.0.0.1
 ARG rdp_port=3389
+ENV ENABLE_RDP=1
 
 RUN --mount=type=cache,target=/var/cache/pacman/pkg,sharing=locked \
 paru -Syu --noconfirm \
@@ -288,12 +289,12 @@ ${homedir}/.config/zathura \
 ${homedir}/.config/inlyne \
 ${homedir}/.vscode-oss
 COPY --chown=${user}:${group} i3status.config ${homedir}/.config/i3status/config
-COPY --chown=${user}:${group} i3.config ${homedir}/.config/i3/config 
-COPY --chown=${user}:${group} wall1.jpg ${homedir}/Pictures 
-COPY --chown=${user}:${group} wall2.jpg ${homedir}/Pictures 
-COPY --chown=${user}:${group} neovide.png ${homedir}/Pictures 
-COPY --chown=${user}:${group} neovide.toml ${homedir}/.config/neovide/config.toml 
-COPY --chown=${user}:${group} kitty.conf ${homedir}/.config/kitty/kitty.conf 
+COPY --chown=${user}:${group} i3.config ${homedir}/.config/i3/config
+COPY --chown=${user}:${group} wall1.jpg ${homedir}/Pictures
+COPY --chown=${user}:${group} wall2.jpg ${homedir}/Pictures
+COPY --chown=${user}:${group} neovide.png ${homedir}/Pictures
+COPY --chown=${user}:${group} neovide.toml ${homedir}/.config/neovide/config.toml
+COPY --chown=${user}:${group} kitty.conf ${homedir}/.config/kitty/kitty.conf
 COPY --chown=${user}:${group} config.rasi ${homedir}/.config/rofi/config.rasi
 COPY --chown=${user}:${group} neovide.desktop ${homedir}/.local/share/applications/neovide.desktop
 COPY --chown=${user}:${group} mimeapps.list ${homedir}/.config/mimeapps.list
