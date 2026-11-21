@@ -253,6 +253,7 @@ RUN dbus-uuidgen --ensure=/etc/machine-id && \
 sed -i "0,/^port=/s|^port=.*|port=tcp://${rdp_bind}:${rdp_port}|" /etc/xrdp/xrdp.ini && \
 sed -i 's/^autorun=.*/autorun=Xorg/' /etc/xrdp/xrdp.ini && \
 sed -i 's/^EnableUserWindowManager=.*/EnableUserWindowManager=false/' /etc/xrdp/sesman.ini && \
+sed -i 's/^FuseMountName=.*/FuseMountName=shared_xrdp_drives/' /etc/xrdp/sesman.ini && \
 printf 'allowed_users=anybody\nneeds_root_rights=no\n' > /etc/X11/Xwrapper.config
 COPY entrypoint.sh /usr/local/bin/entrypoint.sh
 RUN chmod 755 /usr/local/bin/entrypoint.sh
