@@ -1,6 +1,6 @@
 ! Font
 XTerm*faceName: JetBrainsMono Nerd Font
-XTerm*faceSize: 18
+XTerm*faceSize: 14
 
 ! Remove scrollbar
 XTerm*scrollBar: false

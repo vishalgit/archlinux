@@ -78,8 +78,8 @@
 #+end_src
 *** font, theme and options
 #+begin_src emacs-lisp :tangle "~/.config/doom/config.el"
-(setq doom-font (font-spec :family "jetbrainsmono nerd font mono" :size 16 :weight 'medium)
-      doom-variable-pitch-font (font-spec :family "jetbrainsmono nerd font propo" :size 18))
+(setq doom-font (font-spec :family "jetbrainsmono nerd font mono" :size 18 :weight 'medium)
+      doom-variable-pitch-font (font-spec :family "jetbrainsmono nerd font propo" :size 20))
 
 (setq display-line-numbers-type 'relative)
 
