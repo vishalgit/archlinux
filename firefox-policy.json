@@ -7,7 +7,9 @@
       },
       "{446900e4-71c2-419f-a6a7-df9c091e268b}": {
         "installation_mode": "force_installed",
-        "install_url": "https://addons.mozilla.org/firefox/downloads/latest/bitwarden-password-manager/latest.xpi"
+        "install_url": "https://addons.mozilla.org/firefox/downloads/latest/bitwarden-password-manager/latest.xpi",
+        "default_area": "navbar",
+        "private_browsing": true
       },
       "{d7742d87-e61d-4b78-b8a1-b469842139fa}": {
         "installation_mode": "force_installed",
@@ -15,7 +17,9 @@
       },
       "addon@darkreader.org": {
         "installation_mode": "normal_installed",
-        "install_url": "https://addons.mozilla.org/firefox/downloads/latest/darkreader/latest.xpi"
+        "install_url": "https://addons.mozilla.org/firefox/downloads/latest/darkreader/latest.xpi",
+        "default_area": "navbar",
+        "private_browsing": true
       }
     },
 
@@ -36,6 +40,10 @@
     "OverridePostUpdatePage": "",
     "DontCheckDefaultBrowser": true,
     "DisableProfileImport": true,
+    "PasswordManagerEnabled": false,
+    "OfferToSaveLogins": false,
+    "AutofillAddressEnabled": false,
+    "AutofillCreditCardEnabled": false,
     "NoDefaultBookmarks": true,
     "UserMessaging": {
       "WhatsNew": false,
