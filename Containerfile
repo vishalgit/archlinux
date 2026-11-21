@@ -265,7 +265,7 @@ USER ${user}
 # Setup passenger ide
 RUN --mount=type=cache,target=/var/cache/pacman/pkg,sharing=locked \
 paru -S --noconfirm \
-libx11 libice libsm fuse2 && \
+libx11 libice libsm && \
 myarch=$(uname -m | sed 's/x86_64/x64/; s/aarch64/arm64/') && \
 curl -LO \
 https://github.com/Zaneris/passenger/releases/latest/download/Passenger-linux-$myarch.tar.gz && \
