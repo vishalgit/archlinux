@@ -243,7 +243,7 @@ dbus ttf-dejavu i3lock xss-lock picom xterm kitty neovide firefox-esr-bin xdg-ut
 rage-encryption pinentry \
 thunar gvfs tumbler ffmpegthumbnailer \
 xsettingsd arc-gtk-theme papirus-icon-theme \
-zathura zathura-pdf-mupdf inlyne glow code \
+zathura zathura-pdf-mupdf inlyne-bin glow code \
 noto-fonts noto-fonts-emoji ttf-liberation
 
 USER root
