@@ -265,13 +265,17 @@ USER ${user}
 # Setup passenger ide
 RUN --mount=type=cache,target=/var/cache/pacman/pkg,sharing=locked \
 paru -S --noconfirm \
-libx11 libice libsm && \
+libx11 libice libsm fuse2 && \
 myarch=$(uname -m | sed 's/x86_64/x64/; s/aarch64/arm64/') && \
 curl -LO \
 https://github.com/Zaneris/passenger/releases/latest/download/Passenger-linux-$myarch.tar.gz && \
 tar -xzf Passenger-linux-$myarch.tar.gz && \
 ./passenger/install.sh && \
 rm -rf ./passenger Passenger-linux-$myarch.tar.gz
+
+# Setup openidea ide
+COPY --chown=${user}:${group} openidea-update ${homedir}/.local/bin/
+RUN chmod u+x ${homedir}/.local/bin/openidea-update
 # i3 config: start from the stock one (skips the first-run wizard), then add ours
 RUN mkdir -p ${homedir}/.config/i3 \
 ${homedir}/.config/i3status \
