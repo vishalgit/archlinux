@@ -1,0 +1,7 @@
+set recolor true
+set recolor-keephue true
+set default-bg "#1e222a"
+set recolor-darkcolor "#d8dee9"
+set recolor-lightcolor "#1e222a"
+set font "JetBrainsMono Nerd Font 12"
+set selection-clipboard clipboard

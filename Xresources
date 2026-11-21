@@ -9,7 +9,7 @@ XTerm*scrollBar: false
 XTerm*termName: xterm-256color
 XTerm*locale: true
 XTerm*utf8: 2
-Xterm*background: #282828
-Xterm*foreground: #ebdbb2
-Xterm*cursorColor: #ebdbb2
+XTerm*background: #282828
+XTerm*foreground: #ebdbb2
+XTerm*cursorColor: #ebdbb2
 XTerm*selectToClipboard: true

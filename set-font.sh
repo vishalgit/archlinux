@@ -5,7 +5,7 @@ BACKUP_DIR="/tmp/font-change-$$"
 mkdir -p "$BACKUP_DIR"
 
 # Backup everything first
-FIlES=(
+FILES=(
 	~/.config/kickstart/lua/custom/plugins/overrides.lua
 	~/.config/lazyvim/lua/plugins/neovide.lua
 	~/.config/i3/config

@@ -93,17 +93,15 @@ RUN --mount=type=cache,target=/var/cache/pacman/pkg,sharing=locked \
 paru -Syu rclone --noconfirm && \
 mkdir -p ${homedir}/org ${homedir}/.config/rclone 
 COPY --chown=${user}:${group} rclone.conf ${homedir}/.config/rclone/rclone.conf
-RUN cat >> ${homedir}/.zshrc <<'EOF'
+RUN mkdir -p ${homedir}/.config/shell && \
+cat >> ${homedir}/.config/shell/unlock.sh <<'EOF'
 unlock() {
   local key
-  key=$(age -d $HOME/.secrets/key.age) || return 1
+  key=$(rage -d $HOME/.secrets/key.age) || return 1
   set -a
   source <(SOPS_AGE_KEY="$key" sops decrypt --output-type dotenv $HOME/.secrets/secrets.enc.yaml)
   set +a
 }
-alias orgbisync='rclone bisync $HOME/org mega:org --resync --size-only'
-alias orgsync='rclone bisync $HOME/org mega:org --size-only'
-alias kvim='[[ -z "${GH_TOKEN:-}" ]] && unlock;NVIM_APPNAME=kickstart nvim'
 EOF
 
 # Setup single editor neovim 
@@ -207,15 +205,20 @@ RUN rustup target add wasm32-unknown-unknown && \
 cargo install cargo-binstall && \
 cargo binstall trunk cargo-leptos leptosfmt
 
-
-RUN echo 'eval "$(zoxide init zsh)"' >> ${homedir}/.zshrc && \
-echo "alias ls='eza'" >> ${homedir}/.zshrc && \
-echo "alias ll='eza -l --git --icons'" >> ${homedir}/.zshrc && \
-echo "alias la='eza -la --git --icons'" >> ${homedir}/.zshrc && \
-echo "alias lt='eza -A --tree --level=3 --icons'" >> ${homedir}/.zshrc && \
-echo "alias cmacs='emacs -nw'" >> ${homedir}/.zshrc && \
-echo "source /usr/share/fzf/key-bindings.zsh" >> ${homedir}/.zshrc && \
-echo 'export PROMPT_EOL_MARK=""' >> ${homedir}/.zshrc
+RUN cat >> ${homedir}/.zshrc <<'EOF'
+eval "$(zoxide init zsh)"
+source $HOME/.config/shell/unlock.sh
+alias orgbisync='rclone bisync $HOME/org mega:org --resync --size-only'
+alias orgsync='rclone bisync $HOME/org mega:org --size-only'
+alias kvim='[[ -z "${GH_TOKEN:-}" ]] && unlock;NVIM_APPNAME=kickstart nvim'
+alias ls='eza'
+alias ll='eza -l --git --icons'
+alias la='eza -la --git --icons'
+alias lt='eza -A --tree --level=3 --icons'
+alias cmacs='emacs -nw'
+source /usr/share/fzf/key-bindings.zsh
+export PROMPT_EOL_MARK=""
+EOF
 
 COPY --chown=${user}:${group} p10k.zsh ${homedir}/.p10k.zsh
 RUN echo '[[ ! -f ~/.p10k.zsh ]] || source ~/.p10k.zsh' >> ${homedir}/.zshrc
@@ -233,10 +236,15 @@ ARG rdp_port=3389
 RUN --mount=type=cache,target=/var/cache/pacman/pkg,sharing=locked \
 paru -Syu --noconfirm \
 tini \
-xorg-server xorg-xauth xorg-xrandr xorg-xsetroot \
+xorg-server xorg-xauth xorg-xrandr xorg-xsetroot xorg-xrdb \
 xrdp xorgxrdp \
 i3-wm i3status rofi dunst libnotify feh \
-dbus ttf-dejavu i3lock xss-lock picom xterm kitty neovide firefox-esr-bin xdg-utils
+dbus ttf-dejavu i3lock xss-lock picom xterm kitty neovide firefox-esr-bin xdg-utils \
+rage-encryption pinentry \
+thunar gvfs tumbler ffmpegthumbnailer \
+xsettingsd arc-gtk-theme papirus-icon-theme \
+zathura zathura-pdf-mupdf inlyne glow code \
+noto-fonts noto-fonts-emoji ttf-liberation
 
 USER root
 # machine-id for D-Bus; bind xrdp listener (only the first port= line, the
@@ -260,7 +268,11 @@ ${homedir}/.config/i3status \
 ${homedir}/Pictures \
 ${homedir}/.config/neovide \
 ${homedir}/.config/kitty \
-${homedir}/.config/rofi
+${homedir}/.config/rofi \
+${homedir}/.config/gtk-3.0 \
+${homedir}/.config/zathura \
+${homedir}/.config/inlyne \
+${homedir}/.vscode-oss
 COPY --chown=${user}:${group} i3status.config ${homedir}/.config/i3status/config
 COPY --chown=${user}:${group} i3.config ${homedir}/.config/i3/config 
 COPY --chown=${user}:${group} wall1.jpg ${homedir}/Pictures 
@@ -271,6 +283,12 @@ COPY --chown=${user}:${group} kitty.conf ${homedir}/.config/kitty/kitty.conf
 COPY --chown=${user}:${group} config.rasi ${homedir}/.config/rofi/config.rasi
 COPY --chown=${user}:${group} neovide.desktop ${homedir}/.local/share/applications/neovide.desktop
 COPY --chown=${user}:${group} mimeapps.list ${homedir}/.config/mimeapps.list
+COPY --chown=${user}:${group} xsettings.ini ${homedir}/.config/gtk-3.0/settings.ini
+COPY --chown=${user}:${group} xsettingsd    ${homedir}/.xsettingsd
+COPY --chown=${user}:${group} Xresources    ${homedir}/.Xresources
+COPY --chown=${user}:${group} zathurarc     ${homedir}/.config/zathura/zathurarc
+COPY --chown=${user}:${group} inlyne.toml   ${homedir}/.config/inlyne/inlyne.toml
+COPY --chown=${user}:${group} argv.json     ${homedir}/.vscode-oss/argv.json
 
 # Every xrdp login runs /etc/xrdp/startwm.sh → straight into i3.
 # Sessions start through PAM, so they do NOT inherit the container ENV;
@@ -280,6 +298,8 @@ USER root
 RUN cat > /etc/xrdp/startwm.sh <<'EOF'
 #!/bin/bash
 export XDG_SESSION_TYPE=x11
+source /home/vishal/.config/shell/unlock.sh
+unlock || true
 exec dbus-run-session -- i3
 EOF
 RUN chmod 755 /etc/xrdp/startwm.sh
