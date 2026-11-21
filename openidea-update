@@ -1,0 +1,68 @@
+#!/usr/bin/env bash
+# Install / update OpenIDEA (AppImage) to the latest GitHub release
+# and keep a desktop entry + icon pointing at a stable symlink.
+set -euo pipefail
+
+REPO="l0ng-ai/openidea"
+APP_DIR="$HOME/Applications"
+LINK="$APP_DIR/OpenIDEA.AppImage"
+ICON_DIR="$HOME/.local/share/icons/hicolor/256x256/apps"
+DESKTOP="$HOME/.local/share/applications/openidea.desktop"
+KEEP=2   # how many AppImage versions to keep around (for rollback)
+
+for cmd in curl jq; do
+  command -v "$cmd" >/dev/null || { echo "missing: $cmd (sudo pacman -S $cmd)"; exit 1; }
+done
+
+mkdir -p "$APP_DIR" "$ICON_DIR" "$(dirname "$DESKTOP")"
+
+# --- 1. find latest release + its AppImage asset -------------------------
+auth=()
+[[ -n "${GITHUB_TOKEN:-}" ]] && auth=(-H "Authorization: Bearer $GITHUB_TOKEN")
+
+json=$(curl -fsSL "${auth[@]}" "https://api.github.com/repos/$REPO/releases/latest")
+tag=$(jq -r '.tag_name' <<<"$json")
+url=$(jq -r '.assets[] | select(.name | test("amd64\\.AppImage$")) | .browser_download_url' <<<"$json" | head -n1)
+name=$(basename "$url")
+
+[[ -n "$url" && "$url" != "null" ]] || { echo "No AppImage asset found in $tag"; exit 1; }
+
+current=$(readlink "$LINK" 2>/dev/null || true)
+if [[ "$(basename "$current")" == "$name" && -x "$APP_DIR/$name" ]]; then
+  echo "OpenIDEA $tag already installed."
+else
+  echo "Downloading $name ($tag)..."
+  curl -fL --progress-bar -o "$APP_DIR/$name.part" "$url"
+  mv "$APP_DIR/$name.part" "$APP_DIR/$name"
+  chmod +x "$APP_DIR/$name"
+  ln -sfn "$name" "$LINK"
+  echo "Installed OpenIDEA $tag"
+fi
+
+# --- 2. icon (extracted from the AppImage) --------------------------------
+tmp=$(mktemp -d)
+trap 'rm -rf "$tmp"' EXIT
+( cd "$tmp" && "$LINK" --appimage-extract '*.png' >/dev/null 2>&1 ) || true
+icon=$(find "$tmp/squashfs-root" -name '*.png' -printf '%s %p\n' 2>/dev/null | sort -n | tail -1 | cut -d' ' -f2-)
+[[ -n "$icon" ]] && cp "$icon" "$ICON_DIR/openidea.png"
+
+# --- 3. desktop entry -----------------------------------------------------
+cat >"$DESKTOP" <<EOF
+[Desktop Entry]
+Type=Application
+Name=OpenIDEA
+Comment=IntelliJ-style IDE rebuilt in Rust
+Exec=$LINK %F
+Icon=openidea
+Terminal=false
+Categories=Development;IDE;
+StartupWMClass=OpenIDEA
+EOF
+# If you get a blank window on Wayland/NVIDIA, use instead:
+# Exec=env WEBKIT_DISABLE_DMABUF_RENDERER=1 $LINK %F
+
+command -v update-desktop-database >/dev/null && update-desktop-database "$(dirname "$DESKTOP")" || true
+command -v gtk-update-icon-cache  >/dev/null && gtk-update-icon-cache -q "$HOME/.local/share/icons/hicolor" 2>/dev/null || true
+
+# --- 4. prune old versions ------------------------------------------------
+ls -1t "$APP_DIR"/OpenIDEA_*_amd64.AppImage 2>/dev/null | tail -n +$((KEEP + 1)) | xargs -r rm -f
