@@ -272,6 +272,7 @@ https://github.com/Zaneris/passenger/releases/latest/download/Passenger-linux-$m
 tar -xzf Passenger-linux-$myarch.tar.gz && \
 ./passenger/install.sh && \
 rm -rf ./passenger Passenger-linux-$myarch.tar.gz && \
+mkdir -p ${homedir}/.local/share/Passenger && \
 cat > ${homedir}/.local/share/Passenger/vimrc <<'EOF'
 inoremap jk <Esc>
 vnoremap jk <Esc>
