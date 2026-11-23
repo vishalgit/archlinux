@@ -28,7 +28,6 @@ ARG homedir="/home/vishal"
 
 RUN groupadd -g 1000 ${group} && \
 useradd -m -u 1000 -g 1000 -s /bin/zsh ${user} && \
-echo "${user}:${user}" | chpasswd && \
 echo "${user} ALL=(ALL) NOPASSWD:ALL" >> /etc/sudoers && \
 mkdir -p /run/user/1000 && \
 chown ${user}:${group} /run/user/1000 && \
