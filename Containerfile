@@ -271,11 +271,20 @@ curl -LO \
 https://github.com/Zaneris/passenger/releases/latest/download/Passenger-linux-$myarch.tar.gz && \
 tar -xzf Passenger-linux-$myarch.tar.gz && \
 ./passenger/install.sh && \
-rm -rf ./passenger Passenger-linux-$myarch.tar.gz
-
+rm -rf ./passenger Passenger-linux-$myarch.tar.gz && \
+cat > ${homedir}/.local/share/Passenger/vimrc <<'EOF'
+inoremap jk <Esc>
+vnoremap jk <Esc>
+set timeoutlen=200
+EOF
 # Setup openidea ide
 COPY --chown=${user}:${group} openidea-update ${homedir}/.local/bin/
 RUN chmod u+x ${homedir}/.local/bin/openidea-update
+RUN cat > ${homedir}/.ideavimrc <<'EOF'
+inoremap jk <Esc>
+vnoremap jk <Esc>
+set timeoutlen=200
+EOF
 # i3 config: start from the stock one (skips the first-run wizard), then add ours
 RUN mkdir -p ${homedir}/.config/i3 \
 ${homedir}/.config/i3status \
