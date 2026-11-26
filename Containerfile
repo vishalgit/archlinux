@@ -246,6 +246,12 @@ xsettingsd gnome-themes-extra papirus-icon-theme \
 zathura zathura-pdf-mupdf inlyne-bin glow code \
 noto-fonts noto-fonts-emoji ttf-liberation
 
+# Setting up sound
+RUN --mount=type=cache,target=/var/cache/pacman/pkg,sharing=locked \
+paru -S --noconfirm pipewire pipewire-pulse wireplumber libpulse pavucontrol \
+    pipewire-module-xrdp && \
+sudo rm -f /etc/xdg/autostart/pipewire-xrdp.desktop
+
 USER root
 # machine-id for D-Bus; bind xrdp listener (only the first port= line, the
 # [Xorg] session section also has a port= line that must stay -1)
@@ -322,9 +328,21 @@ USER root
 RUN cat > /etc/xrdp/startwm.sh <<'EOF'
 #!/bin/bash
 export XDG_SESSION_TYPE=x11
+export XDG_RUNTIME_DIR=/run/user/$(id -u)
 source /home/vishal/.config/shell/unlock.sh
 unlock || true
-exec dbus-run-session -- i3
+
+# clear leftover from previous login
+pkill -u "$USER" -x pipewire-pulse; pkill -u "$USER" -x wireplumber; pkill -u "$USER" -x pipewire
+
+exec dbus-run-session -- bash -c '
+pipewire &
+sleep 0.5
+wireplumber &
+pipewire-pulse &
+( sleep 2; /usr/lib/pipewire-module-xrdp/load_pw_modules.sh ) &
+exec i3
+'
 EOF
 RUN chmod 755 /etc/xrdp/startwm.sh
 USER ${user}
